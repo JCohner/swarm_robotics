@@ -481,20 +481,37 @@ void on_idle(void) {
 
 void setup_positions()
 {
+	
 	int k = 0;
 	int columns = (int)sqrt((num_robots * arena_width / arena_height));
 	int rows = (int)(num_robots / columns);
 	if (num_robots % columns) rows++;
-	int horizontal_separation = 100;// arena_width / (columns + 1);
-	int vertical_separation = 50;//(int)arena_height / (rows + 1);
+	
+	int horizontal_separation = 40;// arena_width / (columns + 1);
+	int vertical_separation = 40;//(int)arena_height / (rows + 1);
+	int hex_offset = 20;
+
+
+	char msg[100];
+	sprintf(msg,"%d, %d\n", rows, columns);
+	printf("%s",msg);
 	for (int i = 0;i < num_robots;i++)
 	{
+		//c and r represent (x,y) of robot in hex space
 		int c = i % columns + 1;
 		int r = i / columns + 1;
-		//int hr = rand() % (horizontal_separation / 2) + horizontal_separation / 4;
-		int x = c * horizontal_separation;// + hr;
-		//int vr = rand() % (vertical_separation / 2) + vertical_separation / 4;
-		int y = r * vertical_separation;// + vr;
+
+		sprintf(msg, "r mod 2 is: %d\n", (r%2));
+		printf("%s",msg);
+		if (r%2 == 1){
+			printf("heyo!\n");
+			hex_offset = 30;
+		} else {
+			printf("neyoo\n");
+			hex_offset = 0;
+		}
+		int x = c * horizontal_separation + hex_offset;// + hr;
+		int y = r * vertical_separation;
 		robots[k] = new mykilobot();
 		double t = rand() * 2 * PI / RAND_MAX;
 		robots[k]->robot_init(x, y, t);
