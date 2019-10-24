@@ -17,7 +17,7 @@
 class robot
 {
 public:
-	int id;
+	int id = 0;
 	double pos[3];//x,y,theta position in real world, dont use these in controller, thats cheating!!
 	double motor_error;//value of how motors differ from ideal, dont use these, thats cheating!!
 	double comm_range = 60; //communication range between robots
@@ -28,8 +28,8 @@ public:
 
 	double dest[3] = { -1,-1,-1 };
 
-	//must implement an robot initialization
 	void robot_init(double, double, double);
+	//overided by init init defined in kilolib.h
 	virtual void init() = 0;
 
 	//robots internal timer
