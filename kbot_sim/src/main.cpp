@@ -501,13 +501,11 @@ void setup_positions()
 		int c = i % columns + 1;
 		int r = i / columns + 1;
 
-		sprintf(msg, "r mod 2 is: %d\n", (r%2));
-		printf("%s",msg);
+		//sprintf(msg, "r mod 2 is: %d\n", (r%2));
+		//printf("%s",msg);
 		if (r%2 == 1){
-			printf("heyo!\n");
 			hex_offset = 30;
 		} else {
-			printf("neyoo\n");
 			hex_offset = 0;
 		}
 		int x = c * horizontal_separation + hex_offset;// + hr;

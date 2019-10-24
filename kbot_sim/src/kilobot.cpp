@@ -89,9 +89,6 @@ class mykilobot : public kilobot
 	void message_rx(message_t *message, distance_measurement_t *distance_measurement)
 	{
 		distance = estimate_distance(distance_measurement);
-		//out_message.data[0] = message->data[0];
-		//out_message.data[1] = message->data[1];
-		//out_message.data[2] = message->data[2];
 		
 		if (message->data[1] > keeper.highest){
 			keeper.highest = message->data[1];
