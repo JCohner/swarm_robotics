@@ -40,7 +40,10 @@ void robot::robot_init(double x, double y, double t)
 	timer = rand() / 100;
 	incoming_message_flag = 0;
 	tx_request = 0;
-	id = rand();
+	if (id == 0){
+		id = rand();
+	}
+	// printf("assigned id#: %d", id);
 	rand();
 	motor_error = robot::gauss_rand(timer)*motion_error_std;
 	init();
