@@ -35,7 +35,7 @@ using namespace std;
 double time_sim;  //simulation time
 double zoom, view_x, view_y; //var. for zoom and scroll
 
-int num_robots = 100; //number of robots running
+int num_robots = 32 * 32; //number of robots running
 
 robot** robots;//creates an array of robots
 int* safe_distance;
