@@ -492,12 +492,18 @@ void setup_positions()
 	
 	int horizontal_separation = 40;// arena_width / (columns + 1);
 	int vertical_separation = 40;//(int)arena_height / (rows + 1);
-	int hex_offset = 20;
+	int hex_offset;
+	int offset;
+	if (init_shape == 'h'){
+		offset = 30;
+	} else {
+		offset = 0;
+	}
 
 
-	char msg[100];
-	sprintf(msg,"%d, %d\n", rows, columns);
-	printf("%s",msg);
+	// char msg[100];
+	// sprintf(msg,"%d, %d\n", rows, columns);
+	// printf("%s",msg);
 	for (int i = 0;i < num_robots;i++)
 	{
 		//c and r represent (x,y) of robot in hex space
@@ -507,11 +513,11 @@ void setup_positions()
 		//sprintf(msg, "r mod 2 is: %d\n", (r%2));
 		//printf("%s",msg);
 		if (r%2 == 1){
-			hex_offset = 30;
+			hex_offset = offset;
 		} else {
 			hex_offset = 0;
 		}
-		int x = c * horizontal_separation + hex_offset;// + hr;
+		int x = c * horizontal_separation + hex_offset;
 		int y = r * vertical_separation;
 		robots[k] = new mykilobot();
 		double t = rand() * 2 * PI / RAND_MAX;
