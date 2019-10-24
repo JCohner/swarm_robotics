@@ -502,7 +502,7 @@ void setup_positions()
 
 
 	char msg[100];
-	int special_guys = -1;
+	int seed_node_id = -1;
 	for (int i = 0;i < num_robots;i++)
 	{
 		//c and r represent (x,y) of robot in hex space
@@ -522,12 +522,11 @@ void setup_positions()
 		// sprintf(msg, "c is: %d & r is %d\n", c, r);
 		// printf("%s",msg);
 		double t = rand() * 2 * PI / RAND_MAX;
-		robots[k]->robot_init(x, y, t);
-		if (r == 1 && (c == 1 || c == 32)){
-			robots[k]->id=special_guys;
-			special_guys = special_guys - 1;
-			// printf("%d\n", special_guys);
+		if (r == 1 && (c == 1 || c == ((int) sqrt(num_robots)))) {
+			robots[k]->id=seed_node_id;
+			seed_node_id = seed_node_id - 1;
 		}
+		robots[k]->robot_init(x, y, t);
 		k++;
 	}
 }
