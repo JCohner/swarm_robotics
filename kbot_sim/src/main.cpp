@@ -501,27 +501,33 @@ void setup_positions()
 	}
 
 
-	// char msg[100];
-	// sprintf(msg,"%d, %d\n", rows, columns);
-	// printf("%s",msg);
+	char msg[100];
+	int special_guys = -1;
 	for (int i = 0;i < num_robots;i++)
 	{
 		//c and r represent (x,y) of robot in hex space
 		int c = i % columns + 1;
 		int r = i / columns + 1;
 
-		//sprintf(msg, "r mod 2 is: %d\n", (r%2));
-		//printf("%s",msg);
+		
 		if (r%2 == 1){
 			hex_offset = offset;
 		} else {
 			hex_offset = 0;
 		}
+		
 		int x = c * horizontal_separation + hex_offset;
 		int y = r * vertical_separation;
 		robots[k] = new mykilobot();
+		// sprintf(msg, "c is: %d & r is %d\n", c, r);
+		// printf("%s",msg);
 		double t = rand() * 2 * PI / RAND_MAX;
 		robots[k]->robot_init(x, y, t);
+		if (r == 1 && (c == 1 || c == 32)){
+			robots[k]->id=special_guys;
+			special_guys = special_guys - 1;
+			// printf("%d\n", special_guys);
+		}
 		k++;
 	}
 }
