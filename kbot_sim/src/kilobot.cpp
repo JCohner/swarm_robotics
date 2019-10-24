@@ -60,10 +60,23 @@ class mykilobot : public kilobot
 		out_message.type = NORMAL;
 		out_message.data[0] = id & 0xff00; //highbits of id
 		out_message.data[1] = id & 0x00ff; //lowbits of id
-		out_message.data[2] = pos[0]; //xpos
-		out_message.data[3] = pos[1]; //ypos
+		
+		unsigned short x_short = (unsigned short)  pos[0];
+		unsigned short y_short = (unsigned short) pos[1];
+
+		out_message.data[2] = (x_short & 0xff00) >> 8; //xpos
+		out_message.data[3] = (x_short & 0x00ff); //ypos
+		out_message.data[4] = (y_short & 0xff00) >> 8; //xpos
+		out_message.data[5] = y_short & 0x00ff; //ypos
 		out_message.crc = message_crc(&out_message);
 		
+		// printf("x: %f, y: %f\n", pos[0], pos[1]);
+		// printf("x: %d, y: %d\n", x_short, y_short);
+		// unsigned short test_x = (out_message.data[2] << 8) | (out_message.data[3] & 0xff);
+		// unsigned short test_y = (out_message.data[4] << 8) |(out_message.data[5] & 0xff);
+		// printf("x: %d, y: %d\n", test_x , test_y);
+		// printf("\n");
+
 		//set to default color
 		// set_color(RGB(0,0,1));
 		// if (id < 0){
