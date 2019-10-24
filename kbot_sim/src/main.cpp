@@ -73,6 +73,9 @@ bool write_final = false;
 
 unsigned int seed = 0;
 
+//declaring global variable init shape such that we can track command line arg
+char init_shape = 's';
+
 void strcpy_safe(char *m, int l, char *s)
 
 {
@@ -520,8 +523,10 @@ void setup_positions()
 // Main routine.
 int main(int argc, char **argv)
 {
-	for (int i = 0;i < argc-1;i++)
+	//it loooped for argc -1 i have changed it to loop up to < argc
+	for (int i = 0;i < argc;i++)
 	{
+		printf("%d\n", i);
 		if (strcmp(argv[i],"/r")==0)
 		{
 			num_robots = stoi(argv[i + 1]);
@@ -562,6 +567,16 @@ int main(int argc, char **argv)
 		{
 			strcpy_safe(shape_file_name, 255, argv[i + 1]);
 		}
+		//Making argument values for hex vs sqaure
+		if (strcmp(argv[i], "/square") == 0){
+			init_shape = 's';
+			printf("%c\n",init_shape);
+		}
+		if (strcmp(argv[i], "/hex") == 0){
+			init_shape = 'h';
+			printf("%c\n",init_shape);
+		}
+
 	}
 
 	robots = (robot **)malloc(num_robots * sizeof(robot *));//creates an array of robots
