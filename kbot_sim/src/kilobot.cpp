@@ -23,20 +23,18 @@ class mykilobot : public kilobot
 		if(rxed==1)
 		{
 			if (keeper.lowest == id){
-				set_color(RGB(0,0,1));
+				//set_color(RGB(0,0,1));
 			} 
 			if (keeper.highest == id){
-				set_color(RGB(0,1,0));
+				//set_color(RGB(0,1,0));
 			}
     		rxed=0;
 		}
 		
-
-	
 		//update message
 		out_message.type = NORMAL;
-		out_message.data[0] = id;
-		out_message.data[1] = keeper.highest;
+		out_message.data[0] = id & 0xff00; //id high
+		out_message.data[1] = id & 0x00ff; //id low
 		out_message.data[2] = keeper.lowest;
 		out_message.crc = message_crc(&out_message);
 
@@ -46,23 +44,32 @@ class mykilobot : public kilobot
 	//executed once at start
 	void setup()
 	{
-		//already has a random id inhereted from the robot class
-		id=id&0xff;
+		//already has a random id inhereted from the robot class ask if we can expand this number
+		id = id & 0xffff;
+		// printf("id #: %d\n", id);
+		if (id == 0xffff || id == 0xfffe) {
+			// printf("<0!!!!!!\n");
+			set_color(RGB(0,0,1));
+		} else if (id > 0) {
+			// printf("im not <0!\n");
+			set_color(RGB(1,1,1));
+		}
+		
 
-		keeper.highest = id;
-		keeper.lowest = id;
 		//sets type to 1
 		out_message.type = NORMAL;
-		//but 0 of 9 bits of data is bot ID
-		out_message.data[0] = id;
-		//could maybe have this as highest?
-		out_message.data[1] = keeper.highest;
-		//and this as lowest?
-		out_message.data[2] = keeper.lowest;
+		out_message.data[0] = id & 0xff00; //highbits of id
+		out_message.data[1] = id & 0x00ff; //lowbits of id
+		out_message.data[2] = pos[0]; //xpos
+		out_message.data[3] = pos[1]; //ypos
 		out_message.crc = message_crc(&out_message);
 		
 		//set to default color
-		set_color(RGB(0,0,1));
+		// set_color(RGB(0,0,1));
+		// if (id < 0){
+		// 	printf("hey im negative!\n");
+		// 	set_color(RGB(1,0,0));
+		// }
 		
 	}
 
@@ -92,12 +99,12 @@ class mykilobot : public kilobot
 		
 		if (message->data[1] > keeper.highest){
 			keeper.highest = message->data[1];
-			set_color(RGB(1,0,0));
+			//set_color(RGB(1,0,0));
 		}
 
 		if (message->data[2] < keeper.lowest){
 			keeper.lowest = message->data[2];
-			set_color(RGB(1,0,0));
+			//set_color(RGB(1,0,0));
 		}
 
 		rxed=1;
