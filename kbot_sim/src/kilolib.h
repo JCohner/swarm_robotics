@@ -11,7 +11,7 @@ typedef double distance_measurement_t;
 //communication data struct without distance it should be 9 bytes max
 struct message_t {
 	unsigned char type = 0;
-	unsigned char data[9];
+	unsigned char data[12];
 	unsigned char crc;
 };
 
