@@ -26,15 +26,17 @@ class mykilobot : public kilobot
 	{
 		if(rxed==1)
 		{
-			
 			out_message.data[0] = (rid & 0xff00) >> 8; //id high
 			out_message.data[1] = rid & 0x00ff; //id low
 			int i = 2;
 			for (int x = 0; x < my_info.seed_count; x++){
 				// printf("forwarding\n");
-				out_message.data[i + x] = my_info.seed_pos[x][0];
-				out_message.data[i + x + 1] = my_info.seed_pos[x][1];
-				out_message.data[i + x + 2] = my_info.h_count[x] + 1;
+				out_message.data[i + x] = (my_info.seed_pos[x][0] & 0xff00) >> 8;
+				out_message.data[i + x + 1] = my_info.seed_pos[x][0] & 0xff;
+				out_message.data[i + x + 2] = (my_info.seed_pos[x][1] & 0xff00) >> 8;
+				out_message.data[i + x + 3] = my_info.seed_pos[x][1] & 0xff;
+				out_message.data[i + x + 4] = my_info.h_count[x] + 1;
+				// printf("sending message with hopcount: %d\n", out_message.data[i + x + 4]);
 			}
     		rxed=0;
 		}
@@ -64,15 +66,18 @@ class mykilobot : public kilobot
 			my_info.h_count[1] = (unsigned char) 0xFE;
 			//sets type to 1
 			out_message.type = NORMAL;
+			/*your id, seeds in this case*/
 			out_message.data[0] = (rid & 0xff00) >> 8; //highbits of id
 			out_message.data[1] = rid & 0x00ff; //lowbits of id
 			
-			
-
+			/*seed 1 position*/
 			out_message.data[2] = (x_short & 0xff00) >> 8; //xpos hi
 			out_message.data[3] = (x_short & 0x00ff); //xpos low
+
 			out_message.data[4] = (y_short & 0xff00) >> 8; //ypos hi
 			out_message.data[5] = y_short & 0x00ff; //ypos low
+
+			/*hopcount to that seed position*/
 			out_message.data[6] = my_info.h_count[0] + 1;
 			out_message.data[7] = 0xff; //xpos hi
 			out_message.data[8] = 0xff; //xpos low
@@ -141,7 +146,7 @@ class mykilobot : public kilobot
 	//receives message
 	void message_rx(message_t *message, distance_measurement_t *distance_measurement)
 	{
-		// distance = estimate_distance(distance_measurement);
+		distance = estimate_distance(distance_measurement);
 		// char hop = message->data[6];
 		// if (hop < my_info.h_count){
 		// 	my_info.h_count = hop;
@@ -153,32 +158,21 @@ class mykilobot : public kilobot
 		// 	}
 		// }
 		unsigned char hop = message->data[6];
-		unsigned short x = (message->data[0] << 8) | (message->data[1] & 0xff);
+		unsigned short sender = (message->data[0] << 8) | (message->data[1] & 0xff);
 		// if (x == 0xffff | x == 0xfffe){
-		if (hop < my_info.h_count[0]){
-			if (hop == 1){
-				set_color(RGB(1,0,0));
-				my_info.h_count[0] = (unsigned char) hop;
-			} else if (hop == 2){
+		if (hop < my_info.h_count[0] && hop != 0){
+			if (hop % 2 == 1){
 				set_color(RGB(1,0,1));
-				my_info.h_count[0] = (unsigned char) hop;
-			} else{
-				printf("heard something else %d", hop);
-			}
+			} else if (hop % 2 == 0){
+				set_color(RGB(0,1,0));
+			} 
+			my_info.h_count[0] = (unsigned char) hop;
+			my_info.seed_pos[0][0] = message->data[4];
+			my_info.seed_pos[0][1] = message->data[5];
+			printf("hop count set to: %d\n", my_info.h_count[0]);
 			my_info.seed_count++;
 		}
-		// } else{
-			// printf("boner msg %X\n", x);
-		// }
-		// if (message->data[1] > keeper.highest){
-		// 	keeper.highest = message->data[1];
-		// 	//set_color(RGB(1,0,0));
-		// }
 
-		// if (message->data[2] < keeper.lowest){
-		// 	keeper.lowest = message->data[2];
-		// 	//set_color(RGB(1,0,0));
-		// }
 
 		rxed=1;
 		
