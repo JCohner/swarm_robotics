@@ -33,10 +33,12 @@ class mykilobot : public kilobot
 				// printf("forwarding\n");
 				out_message.data[i + x] = (my_info.seed_pos[x][0] & 0xff00) >> 8;
 				out_message.data[i + x + 1] = my_info.seed_pos[x][0] & 0xff;
-				out_message.data[i + x + 2] = (my_info.seed_pos[x][1] & 0xff00) >> 8;
-				out_message.data[i + x + 3] = my_info.seed_pos[x][1] & 0xff;
-				out_message.data[i + x + 4] = my_info.h_count[x] + 1;
-				printf("sending message with hopcount: %d\n", out_message.data[i + x + 4]);
+				out_message.data[i + x + 2] = (my_info.seed_pos[x][0] & 0xff00) >> 8;
+				out_message.data[i + x + 3] = my_info.seed_pos[x][0] & 0xff;
+				out_message.data[i + x + 4] = (my_info.seed_pos[x][1] & 0xff00) >> 8;
+				out_message.data[i + x + 5] = my_info.seed_pos[x][1] & 0xff;
+				out_message.data[i + x + 6] = my_info.h_count[x] + 1;
+				printf("sending message with hopcount: %d\n", out_message.data[i + x + 6]);
 			}
     		rxed=0;
 		}
