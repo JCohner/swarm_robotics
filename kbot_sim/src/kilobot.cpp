@@ -160,6 +160,17 @@ class mykilobot : public kilobot
 			seed1 = (message->data[2] << 8) | (message->data[3] & 0xff);
 			x_pos1 = (message->data[4] << 8) | (message->data[5] & 0xff);
 			y_pos1 = (message->data[6] << 8) | (message->data[7] & 0xff);
+
+			int tracker = -1;
+			if (seed1 == my_info.seed_list[0]){
+				tracker = 0;
+			} else if (seed1 == my_info.seed_list[1]){
+				tracker = 1;
+			} else {
+				printf("heard from unexpected ")
+			}
+
+			if (hop != 0 && hop < )
 		} 
 		if (hop2 != 0xfe){
 			seed2 = (message->data[9] << 8) | (message->data[10] & 0xff);
@@ -172,6 +183,7 @@ class mykilobot : public kilobot
 
 
 		// if (x == 0xffff | x == 0xfffe){
+
 		if (hop < my_info.h_count[0] && hop != 0){
 			if (hop % 2 == 1){
 				set_color(RGB(1,0,1));
@@ -186,6 +198,19 @@ class mykilobot : public kilobot
 			my_info.seed_count++;
 		}
 
+		if (hop2 < my_info.h_count[2] && hop2 != 0){
+			if (hop2 % 2 == 1){
+				set_color(RGB(1,1,1));
+			} else if (hop2 % 2 == 0){
+				set_color(RGB(0,0,0));
+			} 
+			my_info.h_count[1] = (unsigned char) hop;
+			my_info.seed_pos[1][0] = x_pos1;
+			my_info.seed_pos[1][1] = y_pos1;
+			my_info.seed_list[1] = seed1; 			
+			printf("hop count set to: %d\n", my_info.h_count[1]);
+			my_info.seed_count++;
+		}
 
 
 		rxed=1;
