@@ -53,23 +53,26 @@ class mykilobot : public kilobot
 	}
 
 	void colorize(){
-		// if (my_info.x >= 1290){
-		// 	set_color(RGB(1,1,1));
+		if (my_info.x >= 100 && my_info.x <= 400){
+			set_color(RGB(1,1,1));
+		}
+
+		if (my_info.x >= 1000 && my_info.x <= 1280){
+			set_color(RGB(1,1,1));
+		}
+		// if (my_info.x >= 60 && my_info.x <= 160){
+		// 	set_color(RGB(1,0,1));
 		// }
 
-		if (my_info.x >= 60 && my_info.x <= 160){
-			set_color(RGB(1,0,1));
-		}
+		// for(int i = 1; i < 40; i++){
+		// 	if ((my_info.x >= (160+(i * 80)) && my_info.x <= (260+(i * 80))) &&  (my_info.y >= (1180-(i * 60)) && my_info.y <= (1280-(i * 60)))){
+		// 		set_color(RGB(1,0,1));
+		// 	}
+		// }
 
-		for(int i = 1; i < 40; i++){
-			if ((my_info.x >= (160+(i * 80)) && my_info.x <= (260+(i * 80))) &&  (my_info.y >= (1180-(i * 60)) && my_info.y <= (1280-(i * 60)))){
-				set_color(RGB(1,0,1));
-			}
-		}
-
-		if (my_info.x >=1100 && my_info.x <= 1220){
-			set_color(RGB(1,0,1));
-		}
+		// if (my_info.x >=1100 && my_info.x <= 1220){
+		// 	set_color(RGB(1,0,1));
+		// }
 	}
 
 	void mulilateration(uint8_t gradient){
@@ -81,19 +84,15 @@ class mykilobot : public kilobot
 				// printf("making a first guess %d!\n", k++);
 				if (my_info.h_count[0] > my_info.h_count[1]){
 					my_info.x = my_info.seed_pos[0][0];
-					my_info.y = my_info.seed_pos[0][1];
+					my_info.y = my_info.seed_pos[0][1] + 300;
 				} else {
 					my_info.x = my_info.seed_pos[1][0];
-					my_info.y = my_info.seed_pos[1][1];
+					my_info.y = my_info.seed_pos[1][1] + 300;
 				}
 
 				++my_info.i;
 			}
 
-			//every time, compute a better guess
-			float dj0 = euc_dist(my_info.x, my_info.y , my_info.seed_pos[0][0], my_info.seed_pos[0][1]);
-			float dj1 = euc_dist(my_info.x, my_info.y , my_info.seed_pos[1][0], my_info.seed_pos[1][1]);
-			//here we want the hat value for the distance for the node from the seed to be based on the averaged hop_count
 			float dj0_hat;
 			float dj1_hat;
 			if (!smooth && !my_info.h_flag){
@@ -103,77 +102,40 @@ class mykilobot : public kilobot
 				dj0_hat = my_info.h_count_smooth[0] * radius * 7; 
 				dj1_hat = my_info.h_count_smooth[1] * radius * 7;
 			}
-			
-
-			float err0 = pow((dj0 - dj0_hat),2);
-			float err1 = pow((dj1 - dj1_hat),2);
-			float err = err0 + err1;
 
 			//move about 4 directions until youve minimized error, assign minimum step as new x and y
 			uint16_t new_x;
 			uint16_t new_y;
+			float dj0;
+			float dj1;
 			float new_err0;
 			float new_err1;
-			float new_err[4]; 
+			float new_err[9]; 
+			int index = 0;
 
-			//N
-			if (my_info.y != 1280){
-				new_x = my_info.x + (0 * 40);
-				new_y = my_info.y + (1 * 40);
+			for (int i = -1; i < 2; i++){
+				for (int j = -1; j < 2; j++){
+					if (((my_info.x != (i + 1) * 640) || !i ) && ((my_info.y != (j + 1) * 640) || !j)){
+						new_x = my_info.x + (i * 40);
+						new_y = my_info.y + (j * 40);
 
-				new_err0 = pow((euc_dist(new_x, new_y, my_info.seed_pos[0][0], my_info.seed_pos[0][1]) - dj0_hat),2);
-				new_err1 = pow((euc_dist(new_x, new_y, my_info.seed_pos[1][0], my_info.seed_pos[1][1]) - dj1_hat),2);
+						dj0 = euc_dist(new_x, new_y, my_info.seed_pos[0][0], my_info.seed_pos[0][1]);
+						dj1 = euc_dist(new_x, new_y, my_info.seed_pos[1][0], my_info.seed_pos[1][1]);	
 
-				new_err[0] = new_err0 + new_err1;
-			} else {
-				new_err[0] = INFINITY;
-			}
-				
+						new_err0 = pow((dj0 - dj0_hat),2);
+						new_err1 = pow((dj1 - dj1_hat),2);
 
-			//E
-			if (my_info.x != 1280){
-				new_x = my_info.x + (1 * 40);
-				new_y = my_info.y + (0 * 40);
-
-				new_err0 = pow((euc_dist(new_x, new_y, my_info.seed_pos[0][0], my_info.seed_pos[0][1]) - dj0_hat),2);
-				new_err1 = pow((euc_dist(new_x, new_y, my_info.seed_pos[1][0], my_info.seed_pos[1][1]) - dj1_hat),2);
-
-				new_err[1] = new_err0 + new_err1;
-			} else{
-				new_err[1] = INFINITY;
-			}
-				
-
-			//S
-			if (my_info.y != 40){
-				new_x = my_info.x + (0 * 40);
-				new_y = my_info.y + (-1 * 40);
-
-				new_err0 = pow((euc_dist(new_x, new_y, my_info.seed_pos[0][0], my_info.seed_pos[0][1]) - dj0_hat),2);
-				new_err1 = pow((euc_dist(new_x, new_y, my_info.seed_pos[1][0], my_info.seed_pos[1][1]) - dj1_hat),2);
-
-				new_err[2] = new_err0 + new_err1;
-
-			} else{
-				new_err[2] = INFINITY;
+						new_err[index] = new_err0 + new_err1;
+					} else{
+						new_err[index] = INFINITY;
+					}
+					++index;
+				}
 			}
 			
-			//W
-			if (my_info.x != 40){
-				new_x = my_info.x + (-1 * 40);
-				new_y = my_info.y + (0 * 40);
-
-				new_err0 = pow((euc_dist(new_x, new_y, my_info.seed_pos[0][0], my_info.seed_pos[0][1]) - dj0_hat),2);
-				new_err1 = pow((euc_dist(new_x, new_y, my_info.seed_pos[1][0], my_info.seed_pos[1][1]) - dj1_hat),2);
-
-				new_err[3] = new_err0 + new_err1;
-			} else{
-				new_err[3] = INFINITY;
-			}
-			
-			uint8_t dir = 4; //i starts by pointing at error of current guess
-			float min_err = err;
-			for(int j = 0; j < 4; j++){
+			uint8_t dir; //i starts by pointing at error of current position guess
+			float min_err = INFINITY;
+			for(int j = 0; j < 9; j++){
 				if (new_err[j] < min_err){
 					min_err = new_err[j];
 					dir = j;
@@ -184,24 +146,28 @@ class mykilobot : public kilobot
 			my_info.no_err = 0;
 			switch(dir){
 				case 0:
-					//North case
+					//South West case
 					// set_color(RGB(1,0,1));
-					my_info.y = my_info.y + 40; 
+					my_info.x = my_info.x - 40; 
+					my_info.y = my_info.y - 40; 
 					break;
 				case 1:
-					//East case
+					//West
 					// set_color(RGB(0,1,1));
-					my_info.x = my_info.x + 40;
+					my_info.x = my_info.x - 40; 
+					my_info.y = my_info.y - 0; 
 					break;
 				case 2:
-					//South case
+					//Northwest case
 					// set_color(RGB(1,1,0));
-					my_info.y = my_info.y - 40;
+					my_info.x = my_info.x - 40; 
+					my_info.y = my_info.y + 40; 
 					break;
 				case 3:	
-					//West case
+					//South case
 					// set_color(RGB(0,0,1));
-					my_info.x = my_info.x - 40;
+					my_info.x = my_info.x - 0; 
+					my_info.y = my_info.y - 40; 
 					break;
 				case 4:
 					// printf("no error!\n");
@@ -217,6 +183,30 @@ class mykilobot : public kilobot
 					}
 
 					my_info.no_err = 1;
+					break;
+				case 5:
+					//North case
+					// set_color(RGB(0,1,1));
+					my_info.x = my_info.x + 0; 
+					my_info.y = my_info.y + 40; 
+					break;
+				case 6:
+					//South East case
+					// set_color(RGB(1,1,0));
+					my_info.x = my_info.x + 40; 
+					my_info.y = my_info.y - 40; 
+					break;
+				case 7:	
+					//West case
+					// set_color(RGB(0,0,1));
+					my_info.x = my_info.x + 40; 
+					my_info.y = my_info.y - 0; 
+					break;
+				case 8:	
+					//West case
+					// set_color(RGB(0,0,1));
+					my_info.x = my_info.x + 40; 
+					my_info.y = my_info.y + 40; 
 					break;
 				default:
 					printf("eggs\n");
