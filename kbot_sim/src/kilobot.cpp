@@ -15,7 +15,6 @@ class mykilobot : public kilobot
 
 	int msrx=0;
 	struct mydata {
-		//data structure where highest lowest in heard will live, initialize it with current id because it is both the highest and lowest id we have heard
 		unsigned short x;
 		unsigned short y;
 		unsigned short seed_pos[2][2];
@@ -25,6 +24,8 @@ class mykilobot : public kilobot
 		int i;
 		int no_err;
 		int h_flag;
+		uint8_t neighbor_hs[100][2]; //whats an effecient way to keep track of this
+		uint16_t n_index;
 	};
 	mydata my_info;
 	//main loop
@@ -41,14 +42,21 @@ class mykilobot : public kilobot
     		rxed=0;
 		}
 		if (!my_info.no_err | my_info.h_flag){
-			mulilateration();
-		}
+			mulilateration(2);
+		}		
+		// colorize();
+	}
 
-		if (my_info.x >= 60 && my_info.x <= 160){
+	void colorize(){
+		// if (my_info.x >= 1290){
+		// 	set_color(RGB(1,1,1));
+		// }
+
+		if (my_info.x >= 0 && my_info.x <= 60){
 			set_color(RGB(1,0,1));
 		}
 
-		for(int i = 1; i < 50; i++){
+		for(int i = 1; i < 40; i++){
 			if ((my_info.x >= (160+(i * 80)) && my_info.x <= (260+(i * 80))) &&  (my_info.y >= (1180-(i * 60)) && my_info.y <= (1280-(i * 60)))){
 				set_color(RGB(1,0,1));
 			}
@@ -57,16 +65,15 @@ class mykilobot : public kilobot
 		if (my_info.x >=1100 && my_info.x <= 1220){
 			set_color(RGB(1,0,1));
 		}
-
-
 	}
 
-	void mulilateration(){
+	void mulilateration(uint8_t gradient){
 		if ((my_info.h_count[0] != 0xFE) && (my_info.h_count[1] != 0xFE)) {
 			//first guess
+			// static int k = 0;
 			if (!my_info.i){
 				//make our first guess based on which seed is closer
-				// printf("making a first guess!\n");
+				// printf("making a first guess %d!\n", k++);
 				if (my_info.h_count[0] > my_info.h_count[1]){
 					my_info.x = my_info.seed_pos[0][0];
 					my_info.y = my_info.seed_pos[0][1];
@@ -163,32 +170,37 @@ class mykilobot : public kilobot
 			switch(dir){
 				case 0:
 					//North case
-					set_color(RGB(1,0,1));
+					// set_color(RGB(1,0,1));
 					my_info.y = my_info.y + 40; 
 					break;
 				case 1:
 					//East case
-					set_color(RGB(0,1,1));
+					// set_color(RGB(0,1,1));
 					my_info.x = my_info.x + 40;
 					break;
 				case 2:
 					//South case
-					set_color(RGB(1,1,0));
+					// set_color(RGB(1,1,0));
 					my_info.y = my_info.y - 40;
 					break;
 				case 3:	
 					//West case
-					set_color(RGB(0,0,1));
+					// set_color(RGB(0,0,1));
 					my_info.x = my_info.x - 40;
 					break;
 				case 4:
 					// printf("no error!\n");
-					// color1 = (my_info.x)/(1280.0);
-					// color2 = my_info.y/1280.0;
+					if (gradient == 1){
+						color1 = (my_info.x)/(1280.0);
+						color2 = my_info.y/1280.0;
+						set_color(RGB(color1,0,color2));
+					} else if(gradient == 2){
+						;
+					} else {
+						set_color(RGB(0,0,0));
+					}
 
 					// printf("I am at x: %d, y:%d\n", my_info.x, my_info.y);
-					// set_color(RGB(color1,0,color2));
-					set_color(RGB(0,0,0));
 					my_info.no_err = 1;
 					break;
 				default:
@@ -209,6 +221,7 @@ class mykilobot : public kilobot
 		id = id & 0xffff;
 		rid = id;
 		my_info.no_err = 0;
+		my_info.n_index = 0;
 		if (rid == 0xffff || rid == 0xfffe) {
 			// execute seed logic
 			printf("seed id is: %X\n", rid);
@@ -310,6 +323,9 @@ class mykilobot : public kilobot
 
 		unsigned char hop = message->data[2];
 		unsigned char hop2 = message->data[3];
+		// my_info.neighbor_hs[my_info.n_index][0] = hop;
+		// my_info
+
 		// printf("heard h1: %d, h2: %d\n", hop, hop2);
 		if (hop < my_info.h_count[0] && hop != 0){
 			my_info.h_flag = 1;
