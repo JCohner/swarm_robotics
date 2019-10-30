@@ -37,6 +37,11 @@ class mykilobot : public kilobot
     		rxed=0;
 		}
 
+		mulilateration();
+
+	}
+
+	void mulilateration(){
 		if ((my_info.h_count[0] != 0xFE) && (my_info.h_count[1] != 0xFE)) {
 			//first guess
 			if (!my_info.i){
@@ -56,10 +61,10 @@ class mykilobot : public kilobot
 			//every time, compute a better guess
 			float dj0 = euc_dist(my_info.x, my_info.y , my_info.seed_pos[0][0], my_info.seed_pos[0][1]);
 			float dj1 = euc_dist(my_info.x, my_info.y , my_info.seed_pos[1][0], my_info.seed_pos[1][1]);
-			float dj0_hat = my_info.h_count[0] * 20; 
-			float dj1_hat = my_info.h_count[1] * 20;
-			float err0 = dj0 - dj0_hat;
-			float err1 = dj1 - dj1_hat;
+			float dj0_hat = my_info.h_count[0] * radius * 7; 
+			float dj1_hat = my_info.h_count[1] * radius * 7;
+			float err0 = pow((dj0 - dj0_hat),2);
+			float err1 = pow((dj1 - dj1_hat),2);
 			float err = err0 + err1;
 
 			//move about 4 directions until youve minimized error, assign minimum step as new x and y
@@ -74,8 +79,8 @@ class mykilobot : public kilobot
 				new_x = my_info.x + (0 * 40);
 				new_y = my_info.y + (1 * 40);
 
-				new_err0 = euc_dist(new_x, new_y, my_info.seed_pos[0][0], my_info.seed_pos[0][1]) - dj0_hat;
-				new_err1 = euc_dist(new_x, new_y, my_info.seed_pos[1][0], my_info.seed_pos[1][1]) - dj1_hat;
+				new_err0 = pow((euc_dist(new_x, new_y, my_info.seed_pos[0][0], my_info.seed_pos[0][1]) - dj0_hat),2);
+				new_err1 = pow((euc_dist(new_x, new_y, my_info.seed_pos[1][0], my_info.seed_pos[1][1]) - dj1_hat),2);
 
 				new_err[0] = new_err0 + new_err1;
 			} else {
@@ -88,8 +93,8 @@ class mykilobot : public kilobot
 				new_x = my_info.x + (1 * 40);
 				new_y = my_info.y + (0 * 40);
 
-				new_err0 = euc_dist(new_x, new_y, my_info.seed_pos[0][0], my_info.seed_pos[0][1]) - dj0_hat;
-				new_err1 = euc_dist(new_x, new_y, my_info.seed_pos[1][0], my_info.seed_pos[1][1]) - dj1_hat;
+				new_err0 = pow((euc_dist(new_x, new_y, my_info.seed_pos[0][0], my_info.seed_pos[0][1]) - dj0_hat),2);
+				new_err1 = pow((euc_dist(new_x, new_y, my_info.seed_pos[1][0], my_info.seed_pos[1][1]) - dj1_hat),2);
 
 				new_err[1] = new_err0 + new_err1;
 			} else{
@@ -98,25 +103,26 @@ class mykilobot : public kilobot
 				
 
 			//S
-			if (my_info.y != 0){
+			if (my_info.y != 40){
 				new_x = my_info.x + (0 * 40);
 				new_y = my_info.y + (-1 * 40);
 
-				new_err0 = euc_dist(new_x, new_y, my_info.seed_pos[0][0], my_info.seed_pos[0][1]) - dj0_hat;
-				new_err1 = euc_dist(new_x, new_y, my_info.seed_pos[1][0], my_info.seed_pos[1][1]) - dj1_hat;
+				new_err0 = pow((euc_dist(new_x, new_y, my_info.seed_pos[0][0], my_info.seed_pos[0][1]) - dj0_hat),2);
+				new_err1 = pow((euc_dist(new_x, new_y, my_info.seed_pos[1][0], my_info.seed_pos[1][1]) - dj1_hat),2);
 
 				new_err[2] = new_err0 + new_err1;
+
 			} else{
 				new_err[2] = INFINITY;
 			}
 			
 			//W
-			if (my_info.x != 0){
+			if (my_info.x != 40){
 				new_x = my_info.x + (-1 * 40);
 				new_y = my_info.y + (0 * 40);
 
-				new_err0 = euc_dist(new_x, new_y, my_info.seed_pos[0][0], my_info.seed_pos[0][1]) - dj0_hat;
-				new_err1 = euc_dist(new_x, new_y, my_info.seed_pos[1][0], my_info.seed_pos[1][1]) - dj1_hat;
+				new_err0 = pow((euc_dist(new_x, new_y, my_info.seed_pos[0][0], my_info.seed_pos[0][1]) - dj0_hat),2);
+				new_err1 = pow((euc_dist(new_x, new_y, my_info.seed_pos[1][0], my_info.seed_pos[1][1]) - dj1_hat),2);
 
 				new_err[3] = new_err0 + new_err1;
 			} else{
@@ -131,7 +137,8 @@ class mykilobot : public kilobot
 					dir = j;
 				}
 			}
-
+			float color1;
+			float color2;
 			switch(dir){
 				case 0:
 					//North case
@@ -155,7 +162,11 @@ class mykilobot : public kilobot
 					break;
 				case 4:
 					// printf("no error!\n");
-					set_color(RGB(1,1,1));
+					color1 = (my_info.x)/(1280.0);
+					color2 = my_info.y/1280.0;
+
+					printf("I am at x: %d, y:%d\n", my_info.x, my_info.y);
+					set_color(RGB(color1,0,color2));
 					break;
 				default:
 					printf("eggs\n");
@@ -186,9 +197,9 @@ class mykilobot : public kilobot
 			my_info.y = y_short;
 			//all nodes know seed locations
 			my_info.seed_pos[0][0] = 40;
-			my_info.seed_pos[0][1] = 40;
+			my_info.seed_pos[0][1] = 640;
 			my_info.seed_pos[1][0] = 1280;
-			my_info.seed_pos[1][1] = 40;
+			my_info.seed_pos[1][1] = 640;
 
 			my_info.i = 1; //does not need to guess about position
 			
@@ -245,6 +256,8 @@ class mykilobot : public kilobot
 		ret_val = sqrt(pow((x1 - x2), 2) + pow((y1 - y2),2));
 		return ret_val;
 	}
+
+
 
 	//executed on successfull message send
 	void message_tx_success()
