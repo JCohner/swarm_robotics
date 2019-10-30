@@ -118,9 +118,9 @@ class mykilobot : public kilobot
 				new_err0 = euc_dist(new_x, new_y, my_info.seed_pos[0][0], my_info.seed_pos[0][1]) - dj0_hat;
 				new_err1 = euc_dist(new_x, new_y, my_info.seed_pos[1][0], my_info.seed_pos[1][1]) - dj1_hat;
 
-				new_err[2] = new_err0 + new_err1;
+				new_err[3] = new_err0 + new_err1;
 			} else{
-				new_err[2] = INFINITY;
+				new_err[3] = INFINITY;
 			}
 			
 			uint8_t dir = 4; //i starts by pointing at error of current guess
@@ -135,22 +135,22 @@ class mykilobot : public kilobot
 			switch(dir){
 				case 0:
 					//North case
-					// set_color(RGB(1,1,1));
+					set_color(RGB(1,0,1));
 					my_info.y = my_info.y + 40; 
 					break;
 				case 1:
 					//East case
-					// set_color(RGB(1,1,1));
+					set_color(RGB(0,1,1));
 					my_info.x = my_info.x + 40;
 					break;
 				case 2:
 					//South case
-					// set_color(RGB(1,1,1));
+					set_color(RGB(1,1,0));
 					my_info.y = my_info.y - 40;
 					break;
 				case 3:	
 					//West case
-					// set_color(RGB(1,1,1));
+					set_color(RGB(0,0,1));
 					my_info.x = my_info.x - 40;
 					break;
 				case 4:
