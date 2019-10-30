@@ -1,6 +1,8 @@
 #pragma once
 #include "kilolib.h"
 #include <stdint.h>
+// #include <cv.h>
+
 
 class mykilobot : public kilobot
 {
@@ -40,6 +42,20 @@ class mykilobot : public kilobot
 		}
 		if (!my_info.no_err | my_info.h_flag){
 			mulilateration();
+		}
+
+		if (my_info.x >= 60 && my_info.x <= 160){
+			set_color(RGB(1,0,1));
+		}
+
+		for(int i = 1; i < 50; i++){
+			if ((my_info.x >= (160+(i * 80)) && my_info.x <= (260+(i * 80))) &&  (my_info.y >= (1180-(i * 60)) && my_info.y <= (1280-(i * 60)))){
+				set_color(RGB(1,0,1));
+			}
+		}
+
+		if (my_info.x >=1100 && my_info.x <= 1220){
+			set_color(RGB(1,0,1));
 		}
 
 
@@ -167,11 +183,12 @@ class mykilobot : public kilobot
 					break;
 				case 4:
 					// printf("no error!\n");
-					color1 = (my_info.x)/(1280.0);
-					color2 = my_info.y/1280.0;
+					// color1 = (my_info.x)/(1280.0);
+					// color2 = my_info.y/1280.0;
 
 					// printf("I am at x: %d, y:%d\n", my_info.x, my_info.y);
-					set_color(RGB(color1,0,color2));
+					// set_color(RGB(color1,0,color2));
+					set_color(RGB(0,0,0));
 					my_info.no_err = 1;
 					break;
 				default:
