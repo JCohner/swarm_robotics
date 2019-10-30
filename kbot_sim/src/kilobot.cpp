@@ -9,23 +9,28 @@ class mykilobot : public kilobot
 	unsigned char distance;
 	message_t out_message;
 	int rxed=0;
-	
 	int motion=0;
 	long int motion_timer=0;
+	uint8_t smooth = 0;
 
 	int msrx=0;
 	struct mydata {
+		//containg nodes position, position of seeds, and h_count from seeds
 		unsigned short x;
 		unsigned short y;
 		unsigned short seed_pos[2][2];
 		unsigned char h_count[2];
+
 		unsigned short seed_list[2];
 		unsigned char seed_count;
 		int i;
+		//variables to optimize steady state message proscessing
 		int no_err;
 		int h_flag;
-		uint8_t neighbor_hs[100][2]; //whats an effecient way to keep track of this
+		//Variables for when performing smoothing
+		float neighbor_hs[2]; //whats an effecient way to keep track of this
 		uint16_t n_index;
+		float h_count_smooth[2];
 	};
 	mydata my_info;
 	//main loop
@@ -41,10 +46,10 @@ class mykilobot : public kilobot
 			}
     		rxed=0;
 		}
-		if (!my_info.no_err | my_info.h_flag){
-			mulilateration(2);
+		if ((!my_info.no_err | my_info.h_flag) | (smooth)){
+			mulilateration(0);
 		}		
-		// colorize();
+		colorize();
 	}
 
 	void colorize(){
@@ -52,7 +57,7 @@ class mykilobot : public kilobot
 		// 	set_color(RGB(1,1,1));
 		// }
 
-		if (my_info.x >= 0 && my_info.x <= 60){
+		if (my_info.x >= 60 && my_info.x <= 160){
 			set_color(RGB(1,0,1));
 		}
 
@@ -88,8 +93,18 @@ class mykilobot : public kilobot
 			//every time, compute a better guess
 			float dj0 = euc_dist(my_info.x, my_info.y , my_info.seed_pos[0][0], my_info.seed_pos[0][1]);
 			float dj1 = euc_dist(my_info.x, my_info.y , my_info.seed_pos[1][0], my_info.seed_pos[1][1]);
-			float dj0_hat = my_info.h_count[0] * radius * 7; 
-			float dj1_hat = my_info.h_count[1] * radius * 7;
+			//here we want the hat value for the distance for the node from the seed to be based on the averaged hop_count
+			float dj0_hat;
+			float dj1_hat;
+			if (!smooth && !my_info.h_flag){
+				dj0_hat = my_info.h_count[0] * radius * 7; 
+				dj1_hat = my_info.h_count[1] * radius * 7;
+			} else {
+				dj0_hat = my_info.h_count_smooth[0] * radius * 7; 
+				dj1_hat = my_info.h_count_smooth[1] * radius * 7;
+			}
+			
+
 			float err0 = pow((dj0 - dj0_hat),2);
 			float err1 = pow((dj1 - dj1_hat),2);
 			float err = err0 + err1;
@@ -193,6 +208,7 @@ class mykilobot : public kilobot
 					if (gradient == 1){
 						color1 = (my_info.x)/(1280.0);
 						color2 = my_info.y/1280.0;
+						printf("I am at x: %d, y:%d\n", my_info.x, my_info.y);
 						set_color(RGB(color1,0,color2));
 					} else if(gradient == 2){
 						;
@@ -200,7 +216,6 @@ class mykilobot : public kilobot
 						set_color(RGB(0,0,0));
 					}
 
-					// printf("I am at x: %d, y:%d\n", my_info.x, my_info.y);
 					my_info.no_err = 1;
 					break;
 				default:
@@ -323,10 +338,24 @@ class mykilobot : public kilobot
 
 		unsigned char hop = message->data[2];
 		unsigned char hop2 = message->data[3];
-		// my_info.neighbor_hs[my_info.n_index][0] = hop;
-		// my_info
 
-		// printf("heard h1: %d, h2: %d\n", hop, hop2);
+		//under smoothing it keeps track of non-integer average of hop count from neighbors
+		if (smooth == 1 && !my_info.h_flag){
+			my_info.neighbor_hs[0] += (hop + my_info.h_count[0])/2;
+			my_info.neighbor_hs[1] += (hop2 + my_info.h_count[1])/2;
+			my_info.n_index++;
+			if (my_info.n_index == 100){
+				my_info.h_count_smooth[0] = my_info.neighbor_hs[0]/100.0;
+				my_info.h_count_smooth[1] = my_info.neighbor_hs[1]/100.0;
+				my_info.neighbor_hs[0] = my_info.h_count_smooth[0];
+				my_info.neighbor_hs[1] = my_info.h_count_smooth[1];
+
+				// printf("average hop1 is %f\n", my_info.h_count_smooth[1]);
+				my_info.n_index = 0;
+			}
+		} 
+
+		//even under smoothing it still listens for lowest heard hop count from neighbors
 		if (hop < my_info.h_count[0] && hop != 0){
 			my_info.h_flag = 1;
 			if (hop % 2 == 1){
