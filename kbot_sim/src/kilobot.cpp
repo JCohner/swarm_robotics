@@ -21,6 +21,8 @@ class mykilobot : public kilobot
 		unsigned short seed_list[2];
 		unsigned char seed_count;
 		int i;
+		int no_err;
+		int h_flag;
 	};
 	mydata my_info;
 	//main loop
@@ -36,8 +38,10 @@ class mykilobot : public kilobot
 			}
     		rxed=0;
 		}
+		if (!my_info.no_err | my_info.h_flag){
+			mulilateration();
+		}
 
-		mulilateration();
 
 	}
 
@@ -139,6 +143,7 @@ class mykilobot : public kilobot
 			}
 			float color1;
 			float color2;
+			my_info.no_err = 0;
 			switch(dir){
 				case 0:
 					//North case
@@ -165,8 +170,9 @@ class mykilobot : public kilobot
 					color1 = (my_info.x)/(1280.0);
 					color2 = my_info.y/1280.0;
 
-					printf("I am at x: %d, y:%d\n", my_info.x, my_info.y);
+					// printf("I am at x: %d, y:%d\n", my_info.x, my_info.y);
 					set_color(RGB(color1,0,color2));
+					my_info.no_err = 1;
 					break;
 				default:
 					printf("eggs\n");
@@ -174,7 +180,8 @@ class mykilobot : public kilobot
 
 
 		}
-
+		my_info.h_flag = 0;
+		return;
 	}
 
 	//executed once at start
@@ -184,6 +191,7 @@ class mykilobot : public kilobot
 		//already has a random id inhereted from the robot class ask if we can expand this number
 		id = id & 0xffff;
 		rid = id;
+		my_info.no_err = 0;
 		if (rid == 0xffff || rid == 0xfffe) {
 			// execute seed logic
 			printf("seed id is: %X\n", rid);
@@ -287,20 +295,26 @@ class mykilobot : public kilobot
 		unsigned char hop2 = message->data[3];
 		// printf("heard h1: %d, h2: %d\n", hop, hop2);
 		if (hop < my_info.h_count[0] && hop != 0){
+			my_info.h_flag = 1;
 			if (hop % 2 == 1){
-				set_color(RGB(1,0,1));
+				// set_color(RGB(1,0,1));
+				;
 			} else if (hop % 2 == 0){
-				set_color(RGB(0,1,0));
+				// set_color(RGB(0,1,0));
+				;
 			} 
 			my_info.h_count[0] = hop;				
 			// printf("hop count set to: %d, guessing im at %d,%d\n", my_info.h_count[0], my_info.x, my_info.y);
 		}
 
 		if (hop2 < my_info.h_count[1] && hop2 != 0){
+			my_info.h_flag = 1;
 			if (hop2 % 2 == 1){
-				set_color(RGB(1,0,1));
+				// set_color(RGB(1,0,1));
+				;
 			} else if (hop2 % 2 == 0){
-				set_color(RGB(0,1,0));
+				// set_color(RGB(0,1,0));
+				;
 			} 
 			my_info.h_count[1] = hop2;			
 			// printf("hop2 count set to: %d\n", my_info.h_count[1]);
