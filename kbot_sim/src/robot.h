@@ -2,7 +2,7 @@
 #include <iostream>
 #ifndef ROBOT_H
 #define ROBOT_H
-#define motion_error_std .007
+#define motion_error_std .002
 #define PI 3.14159265358979324
 #define GAUSS 10000
 #define right 2
@@ -17,7 +17,7 @@
 class robot
 {
 public:
-	int id = 0;
+	int id;
 	double pos[3];//x,y,theta position in real world, dont use these in controller, thats cheating!!
 	double motor_error;//value of how motors differ from ideal, dont use these, thats cheating!!
 	double comm_range = 60; //communication range between robots
@@ -26,10 +26,12 @@ public:
 					 //robot commanded motion 1=forward, 2=cw rotation, 3=ccw rotation, 4=stop
 	int motor_command;
 
+	float angle_to_light;
+
 	double dest[3] = { -1,-1,-1 };
 
+	//must implement an robot initialization
 	void robot_init(double, double, double);
-	//overided by init init defined in kilolib.h
 	virtual void init() = 0;
 
 	//robots internal timer
@@ -56,7 +58,7 @@ public:
 	virtual char *get_debug_info(char *buffer, char *rt) = 0;
 
 	virtual double comm_out_criteria(double destination_x, double destination_y, int sd) = 0;
-	virtual bool comm_in_criteria(double source_x, double source_y, double distance, void *cd) = 0;
+	virtual bool comm_in_criteria(double source_x, double source_y, double distance, float t,void *cd) = 0;
 
 	//useful  
 	static double distance(double x1, double y1, double x2, double y2)

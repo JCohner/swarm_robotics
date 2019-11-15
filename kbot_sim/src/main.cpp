@@ -34,8 +34,8 @@ using namespace std;
 // Global vars.
 double time_sim;  //simulation time
 double zoom, view_x, view_y; //var. for zoom and scroll
-
-int num_robots = 32 * 32; //number of robots running
+bool takesnapshot;
+int num_robots = 210; //number of robots running
 
 robot** robots;//creates an array of robots
 int* safe_distance;
@@ -47,6 +47,8 @@ FILE *results;
 
 char log_buffer[255];
 char log_file_buffer[buffer_size];
+
+int light_center[2]={1200,1200};
 
 
 bool log_debug_info = true;
@@ -72,9 +74,6 @@ bool last = false;
 bool write_final = false;
 
 unsigned int seed = 0;
-
-//declaring global variable init shape such that we can track command line arg
-char init_shape = 's';
 
 void strcpy_safe(char *m, int l, char *s)
 
@@ -172,11 +171,21 @@ void save_bmp(const char *fileName)
 	SimpleBMP bmp(windowWidth, windowHeight);
 
 	bmp.glReadPixels();
+	printf("snapshot saved to %s\n",fileName);
 	bmp.save(fileName);
+}
+
+void measure_metric()
+{
+	
+	
+	
+      
 }
 
 bool run_simulation_step()
 {
+	measure_metric();
 	static int lastrun = 0;
 	lastrun++;
 
@@ -200,6 +209,18 @@ bool run_simulation_step()
 		}
 	}
 
+	//update angle to light for robots
+	for(i=0;i<num_robots;i++)
+	{
+
+//	robots[i]->angle_to_light=fmod(atan2(light_center[1]-robots[i]->pos[1],light_center[0]-robots[i]->pos[0])-robots[i]->pos[2]+PI,2*PI)-PI;
+	robots[i]->pos[2]=fmod(robots[i]->pos[2],2*PI);
+	robots[i]->angle_to_light=fmod(atan2(light_center[1]-robots[i]->pos[1],light_center[0]-robots[i]->pos[0])-robots[i]->pos[2]+PI,2*PI)-PI   ;
+//printf("in main angle is %f\n\r",robots[i]->angle_to_light);
+
+	}
+
+
 	int seed;
 	seed = (rand() % shuffles) * num_robots;
 	//let robots communicate
@@ -219,7 +240,11 @@ bool run_simulation_step()
 					double range = rs->comm_out_criteria(rd->pos[0], rd->pos[1], safe_distance[index * num_robots + j]);
 					if (range)
 					{
-						if (rd->comm_in_criteria(rs->pos[0], rs->pos[1], range, msg))
+						float theta=0;
+						theta=atan2(rs->pos[1]-rd->pos[1],rs->pos[0]-rd->pos[0])-rd->pos[2];
+
+
+						if (rd->comm_in_criteria(rs->pos[0], rs->pos[1], range,theta, msg))
 						{
 							rs->received();
 							//break;
@@ -279,36 +304,6 @@ bool run_simulation_step()
 	}
 	static int lastsec =- 1;
 	bool result = false;
-/*
-	if ((lastsec!=secs && lastrun>1 && snapshot )|| last)
-	{
-		if (last)
-			cout << "ended\n";
-		else
-			cout << rt << endl;
-
-		lastsec = secs;
-		if (!snapshotcounter || last)
-		{
-			result = true;
-			if (log_debug_info || last)
-			{
-				char finalMSG[] = "final";
-				char buffer[255];
-				if (last)
-				{
-					for (int i = 0;i < num_robots;i++)
-						log_info(robots[i]->get_debug_info(buffer, finalMSG));
-				}else
-				{
-					for (int i = 0;i < num_robots;i++)
-						log_info(robots[i]->get_debug_info(buffer, rt));
-				}
-			}
-			snapshotcounter = snapshot;
-		}
-		snapshotcounter--;
-	}*/
 	if(lastrun%draw_delay==0)
 		return true;
 	return false;
@@ -318,13 +313,13 @@ bool run_simulation_step()
 void draw_scene(void)
 {
 	static int snapshottaken = 0;
-	static bool takesnapshot = false;
+	static bool draw = false;
 	//draws the arena
 
-	takesnapshot = run_simulation_step();
+	draw = run_simulation_step();
 
 	
-	if(takesnapshot)
+	if(draw)
 	{
 		glColor4f(0, 0, 0, 0);
 		glRectd(0, 0, arena_width, arena_height);
@@ -361,20 +356,14 @@ void draw_scene(void)
 		glEnd();
 		glFlush();
 
-		/*if (takesnapshot)
+		if (takesnapshot)
 		{
 			snapshottaken++;
 			char file[100];
-			if (last)
-			{
-				sprintf(file, "%s.final.bmp", log_file_name);
-			}
-			else 
-			{
-				sprintf(file, "%s.%04d.bmp", log_file_name, snapshottaken);
-			}
+			sprintf(file, "IMG%05i.bmp", snapshottaken++);
 			save_bmp(file);
-		}*/
+			takesnapshot = false;
+		}
 
 		glutSwapBuffers();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -468,10 +457,61 @@ void key_input(unsigned char key, int x, int y)
 		draw_delay++;
 		printf("draw delay %d\n\r",draw_delay);
 		break;
+	case ' ':
+		takesnapshot=true;
+		break;
 	default:
 		break;
 	}
 }
+
+
+void setup_positions()
+{
+	int k = 0;
+	int columns = (int)sqrt((num_robots * arena_width / arena_height));
+	int rows = (int)(num_robots / columns);
+	if (num_robots % columns) rows++;
+	int horizontal_separation = 50;//align robots
+	int vertical_separation = 50; //align robots
+	for (int i = 0;i < num_robots;i++)
+	{
+		int c = i % columns + 1;
+		int r = i / columns + 1;
+		//int hr = rand() % (horizontal_separation / 2) + horizontal_separation / 4;
+		int x = c * horizontal_separation+1200;// + hr;
+		//int vr = rand() % (vertical_separation / 2) + vertical_separation / 4;
+		int y = r * vertical_separation+1200;// + vr;
+		
+		//if row is even number, indent it to form hex shape
+		if(r%2==0){
+			x = x + 25;
+		}
+		robots[k] = new mykilobot();
+		double t = rand() * 2 * PI / RAND_MAX;
+		robots[k]->robot_init(x, y, t);
+		if(k<70)
+		{
+			robots[k]->id=0;
+		}
+		else if(k<140)
+		{
+			robots[k]->id=1;
+		}
+		else 
+		{
+			robots[k]->id=2;
+		}
+		k++;
+	}
+
+
+
+
+	
+
+}
+
 
 void on_idle(void) {
 
@@ -482,62 +522,11 @@ void on_idle(void) {
 	glutPostRedisplay();
 }
 
-void setup_positions()
-{
-	
-	int k = 0;
-	int columns = (int)sqrt((num_robots * arena_width / arena_height));
-	int rows = (int)(num_robots / columns);
-	if (num_robots % columns) rows++;
-	
-	int horizontal_separation = 40;// arena_width / (columns + 1);
-	int vertical_separation = 40;//(int)arena_height / (rows + 1);
-	int hex_offset;
-	int offset;
-	if (init_shape == 'h'){
-		offset = 30;
-	} else {
-		offset = 0;
-	}
-
-
-	char msg[100];
-	int seed_node_id = -1;
-	for (int i = 0;i < num_robots;i++)
-	{
-		//c and r represent (x,y) of robot in hex space
-		int c = i % columns + 1;
-		int r = i / columns + 1;
-
-		
-		if (r%2 == 1){
-			hex_offset = offset;
-		} else {
-			hex_offset = 0;
-		}
-		
-		int x = c * horizontal_separation + hex_offset;
-		int y = r * vertical_separation;
-		robots[k] = new mykilobot();
-		// sprintf(msg, "c is: %d & r is %d\n", c, r);
-		// printf("%s",msg);
-		double t = rand() * 2 * PI / RAND_MAX;
-		if (r == 1 && (c == 1 || c == ((int) sqrt(num_robots)))) {
-			robots[k]->id=seed_node_id;
-			seed_node_id = seed_node_id - 1;
-		}
-		robots[k]->robot_init(x, y, t);
-		k++;
-	}
-}
-
 // Main routine.
 int main(int argc, char **argv)
 {
-	//it loooped for argc -1 i have changed it to loop up to < argc
-	for (int i = 0;i < argc;i++)
+	for (int i = 0;i < argc-1;i++)
 	{
-		printf("%d\n", i);
 		if (strcmp(argv[i],"/r")==0)
 		{
 			num_robots = stoi(argv[i + 1]);
@@ -578,16 +567,6 @@ int main(int argc, char **argv)
 		{
 			strcpy_safe(shape_file_name, 255, argv[i + 1]);
 		}
-		//Making argument values for hex vs sqaure
-		if (strcmp(argv[i], "/square") == 0){
-			init_shape = 's';
-			printf("%c\n",init_shape);
-		}
-		if (strcmp(argv[i], "/hex") == 0){
-			init_shape = 'h';
-			printf("%c\n",init_shape);
-		}
-
 	}
 
 	robots = (robot **)malloc(num_robots * sizeof(robot *));//creates an array of robots
@@ -618,9 +597,10 @@ int main(int argc, char **argv)
 	view_x = arena_width;
 	view_y = arena_height;
 
-	//place robots
-	//setup_positions_gradient();
+	
+
 	setup_positions();
+
 
 	setup();
 

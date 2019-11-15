@@ -11,7 +11,7 @@ typedef double distance_measurement_t;
 //communication data struct without distance it should be 9 bytes max
 struct message_t {
 	unsigned char type = 0;
-	unsigned char data[12];
+	unsigned char data[9];
 	unsigned char crc;
 };
 
@@ -29,6 +29,7 @@ public:
 	int kilo_ticks = 0;
 
 	double distance_measurement;
+	float theta;
 	bool message_sent = false;
 
 	struct rgb { double red, green, blue; };
@@ -84,7 +85,7 @@ public:
 	}
 
 	virtual void loop() = 0;
-	virtual void message_rx(message_t *message, distance_measurement_t *distance_measurement) = 0;
+	virtual void message_rx(message_t *message, distance_measurement_t *distance_measurement,float theta) = 0;
 
 	void controller()
 	{
@@ -155,17 +156,18 @@ public:
 
 	double comm_out_criteria(double x, double y, int sd) //stardard circular transmission area
 	{
-		if (sd>(7*radius)) return 0; // it's more than 10 cm away
+		if (sd>(30*radius)) return 0; // it's more than 10 cm away
 		double d = distance(x,y,pos[0],pos[1]);
-		if (d < 7 * radius)
+		if (d <  30* radius)
 			return d;
 		return 0;
 	}
 
-	bool comm_in_criteria(double x, double y, double d, void *cd) 
+	bool comm_in_criteria(double x, double y, double d, float t, void *cd) 
 	{
 		distance_measurement = d;
-		message_rx((message_t *)cd, &distance_measurement);
+		theta=t;
+		message_rx((message_t *)cd, &distance_measurement,theta);
 		return true;
 	}
 
