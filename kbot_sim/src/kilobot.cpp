@@ -15,14 +15,15 @@ class mykilobot : public kilobot
 	//main loop
 	void loop()
 	{	
-		printf("angle to light = %f , angle to last robot message = %f \n\r",angle_to_light,theta); 
-	
+		// printf("angle to light = %f , angle to last robot message = %f \n\r",angle_to_light,theta); 
+		if (id == 0){
+			set_color(RGB(1,1,1));
+		} else if (id == 1){
+			set_color(RGB(1,0,1));
+		} else if (id == 2){
+			set_color(RGB(1,0,0));
+		}
 
-		
-		
-		
-		
-		
 	}
 
 	//executed once at start
@@ -31,6 +32,8 @@ class mykilobot : public kilobot
 		
 		out_message.type = NORMAL;
 		out_message.crc = message_crc(&out_message);
+		printf("my id is: %d\n\n", id);
+
 		
 	}
 
@@ -58,8 +61,6 @@ class mykilobot : public kilobot
 	{
 		distance = estimate_distance(distance_measurement);
 		theta=t;
-		
-		
 	}
 };
 
