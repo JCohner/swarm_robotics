@@ -17,6 +17,7 @@ class mykilobot : public kilobot
 	int t2 = 50;
 	int t3 = 500;
 	double error;
+	double dist_error;
 	int angle_flag = 0;
 
 
@@ -29,7 +30,7 @@ class mykilobot : public kilobot
 	{	
 		curr_t = kilo_ticks;
 		error = angle_to_light/ (2 * 3.14159265358979324);
-
+		dist_error = sqrt(pow((pos[0] - 1200),2) + pow((pos[1] - 1200),2));
 		// printf("prev t is: %d\t curr t is: %d\n", prev_t, curr_t);
 		if ((curr_t >= prev_t + t1) && (curr_t <= prev_t + t1 + t2) && (!angle_flag)) {
 			if (error < 0){
@@ -43,7 +44,7 @@ class mykilobot : public kilobot
 		else if ((curr_t >= prev_t + t1) && (curr_t <= prev_t + t1 + t3) && (angle_flag)){
 			if (abs(error) > 0.05){
 				// t2 = 50;
-				set_color(RGB(1,1,1));
+				// set_color(RGB(1,1,1));
 				angle_flag = 0;
 			} else {
 				motorR = 50;
@@ -51,34 +52,25 @@ class mykilobot : public kilobot
 			}	
 		}
 		else {
-			if (curr_t >= prev_t + t1 + t2){
+			if ((curr_t >= prev_t + t1 + t2)){
 				prev_t = curr_t;
 				
 				t2 = (int)(50 * abs(error));
 				if (abs(error) < 0.01){
 					t2 = 0;
-					set_color(RGB(1,0,1));
+					// set_color(RGB(1,0,1));
 					angle_flag = 1;
 				}
 			}
 			motorR = 0;
-		}
 
-		// if ((curr_t >= prev_t + t1) && (curr_t <= prev_t + t1 + t3) && (angle_flag)) {
-		// 	motorR = 50;
-		// }  else {
-		// 	if (curr_t >= prev_t + t1 + t2){
-		// 		prev_t = curr_t;
-		// 		error = angle_to_light/ (2 * 3.14159265358979324);
-		// 		t2 = (int)(50 * abs(error));
-		// 		if (abs(error) < 0.01){
-		// 			t2 = 0;
-		// 			set_color(RGB(1,0,1));
-		// 			angle_flag = 1;
-		// 		}
-		// 	}
-		// 	motorR = 0;
-		// } 
+			if (angle_flag){
+				t3 = 200 * dist_error;
+				if (dist_error < 50){
+					t3 = 0;
+				}
+			}
+		}
 
 		printf("motorR is %d\n", motorR);
 		spinup_motors();
@@ -86,13 +78,13 @@ class mykilobot : public kilobot
 		
 
 		// printf("angle to light = %f , angle to last robot message = %f \n\r",angle_to_light,theta); 
-		// if (id == 0){
-		// 	set_color(RGB(1,1,1));
-		// } else if (id == 1){
-		// 	set_color(RGB(1,0,1));
-		// } else if (id == 2){
-		// 	set_color(RGB(1,0,0));
-		// }
+		if (id == 0){
+			set_color(RGB(1,1,1));
+		} else if (id == 1){
+			set_color(RGB(1,0,1));
+		} else if (id == 2){
+			set_color(RGB(1,0,0));
+		}
 		
 		//turn for kiloticks + 5 
 		
