@@ -483,12 +483,12 @@ void setup_positions()
 		// //int vr = rand() % (vertical_separation / 2) + vertical_separation / 4;
 		// int y = r * vertical_separation+1200;// + vr;
 		
-		int x = (int) (2400.0 * (double) rand() / (RAND_MAX));
-		int y = (int) (2400.0 * (double) rand() / (RAND_MAX));
+		int x = (int) (2200.0 * (double) rand() / (RAND_MAX) + 50);
+		int y = (int) (2200.0 * (double) rand() / (RAND_MAX) + 50);
 		//if row is even number, indent it to form hex shape
-		if(r%2==0){
-			x = x + 25;
-		}
+		// if(r%2==0){
+		// 	x = x + 25;
+		// }
 		robots[k] = new mykilobot();
 		double t = rand() * 2 * PI / RAND_MAX;
 		robots[k]->robot_init(x, y, t);
