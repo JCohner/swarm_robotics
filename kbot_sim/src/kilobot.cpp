@@ -4,8 +4,9 @@
 class mykilobot : public kilobot
 {
 
-	unsigned char distance;
+	unsigned char distance =255;
 	message_t out_message;
+
 	int rxed=0;
 	float theta;
 	char motorR = 50;
@@ -21,17 +22,55 @@ class mykilobot : public kilobot
 	int angle_flag = 0;
 
 
+	int doOnce = 0;
+	int my_rad_cock;
+	float neighb_bias_angle;
+	float neighb_bias_dist;
+	float k = 1;
+	float mag_repulse;
+	float angie;
+	int message_flag;
+
 	int state = 0;
 
 	int msrx=0;
-
 	//main loop
 	void loop()
 	{	
+		if (!doOnce){
+			setup_p2();
+			doOnce = 1;
+		}
+
+
 		curr_t = kilo_ticks;
-		error = angle_to_light/ (2 * 3.14159265358979324);
+		neighb_bias_angle = theta + PI;
+		neighb_bias_dist = distance;
+		// printf("doinkstance is %d\n", distance);
+		// printf("my_radoink_doink is %d\n", 2 *my_rad_cock);
+		if (neighb_bias_dist < 2 * my_rad_cock) {
+			mag_repulse = k * (2*my_rad_cock - neighb_bias_dist);
+			// printf("interference naysh! %f\n", mag_repulse);
+		} else {
+			mag_repulse = 0;
+		}
+
+
+		if (mag_repulse){
+			angie = ((2 - k) * angle_to_light + k *neighb_bias_angle)/2;
+			error = angie/ (2 * PI);
+		} else{
+			// printf("doing this\n");
+			error = angle_to_light/ (2 * PI);	
+		}
+		
+		// if (message_flag){
+		// 	message_flag = 0;
+		// 	distance = 255;
+		// }
+		
 		dist_error = sqrt(pow((pos[0] - 1200),2) + pow((pos[1] - 1200),2));
-		// printf("prev t is: %d\t curr t is: %d\n", prev_t, curr_t);
+
 		if ((curr_t >= prev_t + t1) && (curr_t <= prev_t + t1 + t2) && (!angle_flag)) {
 			if (error < 0){
 				motorR = 50;
@@ -40,6 +79,7 @@ class mykilobot : public kilobot
 				motorR = 0;
 				motorL = 50;
 			}
+			// t2 = (int)(50 * abs(error));
 		}
 		else if ((curr_t >= prev_t + t1) && (curr_t <= prev_t + t1 + t3) && (angle_flag)){
 			if (abs(error) > 0.05){
@@ -56,7 +96,7 @@ class mykilobot : public kilobot
 				prev_t = curr_t;
 				
 				t2 = (int)(50 * abs(error));
-				if (abs(error) < 0.01){
+				if (abs(error) < 0.05){
 					t2 = 0;
 					// set_color(RGB(1,0,1));
 					angle_flag = 1;
@@ -72,25 +112,32 @@ class mykilobot : public kilobot
 			}
 		}
 
-		printf("motorR is %d\n", motorR);
+		// printf("motorR is %d\n", motorR);
 		spinup_motors();
 		set_motors(motorR, motorL);
 		
 
+
 		// printf("angle to light = %f , angle to last robot message = %f \n\r",angle_to_light,theta); 
-		if (id == 0){
-			set_color(RGB(1,1,1));
-		} else if (id == 1){
-			set_color(RGB(1,0,1));
-		} else if (id == 2){
-			set_color(RGB(1,0,0));
-		}
 		
 		//turn for kiloticks + 5 
 		
 		
 		// printf("%d\n", kilo_ticks);
 
+	}
+
+	void setup_p2(){
+		if (id == 0){
+			my_rad_cock = 25;
+			set_color(RGB(1,1,1));
+		} else if (id == 1){
+			my_rad_cock = 50;
+			set_color(RGB(1,0,1));
+		} else if (id == 2){
+			my_rad_cock = 100;
+			set_color(RGB(1,0,0));
+		}
 	}
 
 	//executed once at start
@@ -106,7 +153,7 @@ class mykilobot : public kilobot
 	//executed on successfull message send
 	void message_tx_success()
 	{
-		//set_color(RGB(1,0,0));
+		// set_color(RGB(1,0,0));
 		
 	}
 
@@ -127,6 +174,7 @@ class mykilobot : public kilobot
 	{
 		distance = estimate_distance(distance_measurement);
 		theta=t;
+		message_flag = 1;
 	}
 };
 
