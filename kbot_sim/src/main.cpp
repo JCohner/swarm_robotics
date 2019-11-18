@@ -177,10 +177,52 @@ void save_bmp(const char *fileName)
 
 void measure_metric()
 {
-	
-	
-	
-      
+	//Calculate error
+	int accum = 0;
+	float dist1;
+	float dist2;
+	float error;
+	float denom;
+	int m;
+	if (num_robots == 100){
+		m = 2;
+	} else if (num_robots == 210){
+		m = 3;
+	}
+	for (int i = 0; i < num_robots; i++){
+		dist1 = sqrt(pow(robots[i]->pos[0] - 1200,2) + pow(robots[i]->pos[1] - 1200,2));
+		for (int j = 0; j < num_robots; j++){
+			// printf("dist1 is: %f\n", dist1);
+			dist2 = sqrt(pow(robots[j]->pos[0] - 1200,2) + pow(robots[j]->pos[1] - 1200,2));
+			// printf("dist2 is: %f\n", dist2);
+			// printf("robo1 id: %d\n", robots[i]->id );
+			// printf("robo2 id: %d\n", robots[j]->id );
+			if ((robots[i]->id < robots[j]->id) && (dist1 > dist2)){
+				// printf("assurp\n");
+				accum += 1;
+			} else if ((robots[i]->id > robots[j]->id) && (dist1 < dist2)){
+				accum += 1;
+				// printf("assurp2\n");
+			} else{
+				accum += 0;
+			}
+		}
+	}
+	// printf("accum: %d\n", accum);
+	denom = pow(num_robots,2);
+	int blah;
+	if (num_robots == 100){
+		blah = 50;
+	} else if (num_robots == 210){
+		blah = 70;
+	}
+	for (int i = 0; i < m; i++){
+		denom += pow(blah,2);
+	}
+
+	error = ((float )accum)/denom;
+	printf("%f\n", error);
+
 }
 
 bool run_simulation_step()
@@ -465,6 +507,26 @@ void key_input(unsigned char key, int x, int y)
 	}
 }
 
+// int * check_unique(int x, int y, int k, int ** robot_positions){
+// 	int vals[2];
+// 	int flag = 0;
+// 	for (int z = 0; z < k; z++){
+// 		if ((robot_positions[z][0] > x - 10) && (robot_positions[z][0] < x + 10) && (robot_positions[z][1] > y - 10) && (robot_positions[z][1] < y + 10)){
+// 			int x = (int) (2200.0 * (double) rand() / (RAND_MAX) + 50);
+// 			int y = (int) (2200.0 * (double) rand() / (RAND_MAX) + 50);
+// 			flag = 1;
+// 			break;
+// 		}
+// 	}
+// 	if (flag){
+// 		check_unique(x,y,k, robot_positions);
+// 	} else {
+// 		vals[0] = x;
+// 		vals[1] = y;
+// 		return vals;
+// 	}
+
+// }
 
 void setup_positions()
 {
@@ -474,6 +536,8 @@ void setup_positions()
 	if (num_robots % columns) rows++;
 	int horizontal_separation = 50;//align robots
 	int vertical_separation = 50; //align robots
+	int robot_positions[num_robots][2];
+	int ret_vals[2];
 	for (int i = 0;i < num_robots;i++)
 	{
 		int c = i % columns + 1;
@@ -485,6 +549,11 @@ void setup_positions()
 		
 		int x = (int) (2200.0 * (double) rand() / (RAND_MAX) + 50);
 		int y = (int) (2200.0 * (double) rand() / (RAND_MAX) + 50);
+	
+		// ret_vals = check_unique(x,y,k, robot_positions);
+
+		// robot_positions[k][0] = ret_vals[0];
+		// robot_positions[k][1] = ret_vals[1];
 		//if row is even number, indent it to form hex shape
 		// if(r%2==0){
 		// 	x = x + 25;
