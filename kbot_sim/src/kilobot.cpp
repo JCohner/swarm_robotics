@@ -7,6 +7,16 @@ class mykilobot : public kilobot
 	unsigned char distance =255;
 	message_t out_message;
 
+	struct mydata
+	{
+		unsigned short my_x;
+		unsigned short my_y;
+		unsigned char my_id;
+		unsigned char neighbor_list[20][1][3]; //id, dist, angle
+		float my_heading;
+	};
+
+
 	int rxed=0;
 	float theta;
 	char motorR = 50;
@@ -38,23 +48,22 @@ class mykilobot : public kilobot
 	void loop()
 	{	
 		if (!doOnce){
-			setup_p2();
 			doOnce = 1;
+			setup_p2();
 		}
-
 
 		curr_t = kilo_ticks;
 		neighb_bias_angle = theta + PI;
 		neighb_bias_dist = distance;
-		// printf("doinkstance is %d\n", distance);
-		// printf("my_radoink_doink is %d\n", 2 *my_rad);
-		if (neighb_bias_dist < 2 * my_rad) {
-			mag_repulse = k * (2*my_rad - neighb_bias_dist);
-			// printf("interference naysh! %f\n", mag_repulse);
-		} else {
-			mag_repulse = 0;
-		}
 
+		// if (neighb_bias_dist < 2 * my_rad) {
+		// 	mag_repulse = k * (2*my_rad - neighb_bias_dist);
+		// 	// printf("interference naysh! %f\n", mag_repulse);
+		// } else {
+		// 	mag_repulse = 0;
+		// }
+
+		mag_repulse = 0;
 
 		if (mag_repulse){
 			angie = ((2 - k) * angle_to_light + k *neighb_bias_angle)/2; //Can be improved
@@ -91,6 +100,7 @@ class mykilobot : public kilobot
 				motorL = 50;
 			}	
 		}
+
 		else {
 			if ((curr_t >= prev_t + t1 + t2)){
 				prev_t = curr_t;
@@ -118,16 +128,8 @@ class mykilobot : public kilobot
 	}
 
 	void setup_p2(){
-		if (id == 0){
-			my_rad = 25;
-			set_color(RGB(1,1,1));
-		} else if (id == 1){
-			my_rad = 50;
-			set_color(RGB(1,0,1));
-		} else if (id == 2){
-			my_rad = 100;
-			set_color(RGB(1,0,0));
-		}
+		//give yourself a random id, populate your heading with current heading
+		
 	}
 
 	//executed once at start

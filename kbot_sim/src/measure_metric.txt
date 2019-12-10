@@ -1,0 +1,51 @@
+void measure_metric()
+{
+	//Calculate error
+	int accum = 0;
+	float dist1;
+	float dist2;
+	float error;
+	float denom;
+	int m;
+	if (num_robots == 100){
+		m = 2;
+	} else if (num_robots == 210){
+		m = 3;
+	}
+	for (int i = 0; i < num_robots; i++){
+		dist1 = sqrt(pow(robots[i]->pos[0] - 1200,2) + pow(robots[i]->pos[1] - 1200,2));
+		for (int j = 0; j < num_robots; j++){
+			// printf("dist1 is: %f\n", dist1);
+			dist2 = sqrt(pow(robots[j]->pos[0] - 1200,2) + pow(robots[j]->pos[1] - 1200,2));
+			// printf("dist2 is: %f\n", dist2);
+			// printf("robo1 id: %d\n", robots[i]->id );
+			// printf("robo2 id: %d\n", robots[j]->id );
+			if ((robots[i]->id < robots[j]->id) && (dist1 > dist2)){
+				// printf("assurp\n");
+				accum += 1;
+			} else if ((robots[i]->id > robots[j]->id) && (dist1 < dist2)){
+				accum += 1;
+				// printf("assurp2\n");
+			} else{
+				accum += 0;
+			}
+		}
+	}
+	// printf("accum: %d\n", accum);
+	denom = pow(num_robots,2);
+	int blah;
+	if (num_robots == 100){
+		blah = 50;
+	} else if (num_robots == 210){
+		blah = 70;
+	}
+	for (int i = 0; i < m; i++){
+		denom += pow(blah,2);
+	}
+
+	error = ((float )accum)/denom;
+	// char buff[20];
+	fprintf(outie, "%f\n", error);
+	// printf("%s", buff);
+
+}

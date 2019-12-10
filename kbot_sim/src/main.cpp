@@ -35,7 +35,7 @@ using namespace std;
 double time_sim;  //simulation time
 double zoom, view_x, view_y; //var. for zoom and scroll
 bool takesnapshot;
-int num_robots = 210; //number of robots running
+int num_robots = 2; //number of robots running
 
 robot** robots;//creates an array of robots
 int* safe_distance;
@@ -48,7 +48,7 @@ FILE *results;
 char log_buffer[255];
 char log_file_buffer[buffer_size];
 
-int light_center[2]={1200,1200};
+int light_center[2]={400,400};
 
 
 bool log_debug_info = true;
@@ -175,59 +175,8 @@ void save_bmp(const char *fileName)
 	bmp.save(fileName);
 }
 
-void measure_metric()
-{
-	//Calculate error
-	int accum = 0;
-	float dist1;
-	float dist2;
-	float error;
-	float denom;
-	int m;
-	if (num_robots == 100){
-		m = 2;
-	} else if (num_robots == 210){
-		m = 3;
-	}
-	for (int i = 0; i < num_robots; i++){
-		dist1 = sqrt(pow(robots[i]->pos[0] - 1200,2) + pow(robots[i]->pos[1] - 1200,2));
-		for (int j = 0; j < num_robots; j++){
-			// printf("dist1 is: %f\n", dist1);
-			dist2 = sqrt(pow(robots[j]->pos[0] - 1200,2) + pow(robots[j]->pos[1] - 1200,2));
-			// printf("dist2 is: %f\n", dist2);
-			// printf("robo1 id: %d\n", robots[i]->id );
-			// printf("robo2 id: %d\n", robots[j]->id );
-			if ((robots[i]->id < robots[j]->id) && (dist1 > dist2)){
-				// printf("assurp\n");
-				accum += 1;
-			} else if ((robots[i]->id > robots[j]->id) && (dist1 < dist2)){
-				accum += 1;
-				// printf("assurp2\n");
-			} else{
-				accum += 0;
-			}
-		}
-	}
-	// printf("accum: %d\n", accum);
-	denom = pow(num_robots,2);
-	int blah;
-	if (num_robots == 100){
-		blah = 50;
-	} else if (num_robots == 210){
-		blah = 70;
-	}
-	for (int i = 0; i < m; i++){
-		denom += pow(blah,2);
-	}
-
-	error = ((float )accum)/denom;
-	printf("%f\n", error);
-
-}
-
 bool run_simulation_step()
 {
-	measure_metric();
 	static int lastrun = 0;
 	lastrun++;
 
@@ -561,6 +510,7 @@ void setup_positions()
 		robots[k] = new mykilobot();
 		double t = rand() * 2 * PI / RAND_MAX;
 		robots[k]->robot_init(x, y, t);
+		// robots[k]->id=0;
 		if(k<70)
 		{
 			robots[k]->id=0;
