@@ -14,6 +14,7 @@ class mykilobot : public kilobot
 		unsigned char my_id;
 		unsigned char neighbor_list[20][1][3]; //id, dist, angle
 		float my_heading;
+		unsigned char neighbor_index;
 	};
 
 
@@ -44,6 +45,7 @@ class mykilobot : public kilobot
 	int state = 0;
 
 	int msrx=0;
+	mydata my_data;
 	//main loop
 	void loop()
 	{	
@@ -129,7 +131,11 @@ class mykilobot : public kilobot
 
 	void setup_p2(){
 		//give yourself a random id, populate your heading with current heading
-		
+		my_data.my_x = pos[0];
+		my_data.my_y = pos[1];
+		my_data.my_id = rand() % 255;
+		my_data.neighbor_index = 0;
+		out_message.data[0] = my_data.my_id;
 	}
 
 	//executed once at start
@@ -166,6 +172,26 @@ class mykilobot : public kilobot
 	{
 		distance = estimate_distance(distance_measurement);
 		theta=t;
+		//figure out who you're hearing from
+		unsigned char sender_id = message->data[0];
+		unsigned char sender_index;
+		bool fam_face_flag = 0;
+		for (int i = 0; i < my_data.neighbor_index; i++){
+			if (my_data.neighbor_list[i][0][0] == sender_id){
+				sender_index = i;
+				fam_face_flag = 1;
+				break;
+			}
+		}
+		if (!fam_face_flag){
+			printf("heard from a new person\n");
+			my_data.neighbor_list[my_data.neighbor_index][0][0] = sender_id;
+			sender_index = my_data.neighbor_index;
+			my_data.neighbor_index++;
+		}
+
+		//update their heading and distance in our neighbor list
+
 		message_flag = 1;
 	}
 };
