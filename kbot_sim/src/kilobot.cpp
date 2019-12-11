@@ -3,7 +3,7 @@
 
 class mykilobot : public kilobot
 {
-	unsigned char NEIGHBOR_RANGE = 200;
+	unsigned short NEIGHBOR_RANGE = 400;
 	unsigned char distance =255;
 	short degrees;
 	message_t out_message;
@@ -45,6 +45,8 @@ class mykilobot : public kilobot
 	int my_rad = 16;
 	float neighb_bias_angle;
 	float neighb_bias_dist;
+	double angle_to_cohesion;
+	double desired_angle;
 	float k = 1;
 	double mag_repulse;
 	double angie;
@@ -57,7 +59,6 @@ class mykilobot : public kilobot
 	//main loop
 	void loop()
 	{	
-		printf("%d",my_rad);
 		if (!doOnce){
 			doOnce = 1;
 			setup_p2();
@@ -81,9 +82,11 @@ class mykilobot : public kilobot
 		double y_average = my_data.my_y;
 		double theta_average = my_data.my_heading;
 		angie = 0;
+		int num_neighbors = 0; //keeps track of inrange neighbors
 		for (int i = 0; i < my_data.neighbor_index; i++){
 			//only consider boids in range
 			if (my_data.neighbor_list[i].distance < NEIGHBOR_RANGE){
+				num_neighbors++;
 				//calculate COM for cohesion
 				x_average += my_data.neighbor_list[i].x;
 				y_average += my_data.neighbor_list[i].y;
@@ -97,34 +100,30 @@ class mykilobot : public kilobot
 
 			}
 		}
+		//convert our desired cohesion position to an angle
 		x_average = x_average / (my_data.neighbor_index + 1);
 		y_average = y_average / (my_data.neighbor_index + 1);
+		if (num_neighbors){
+			angle_to_cohesion = tan((y_average - my_data.my_y)/float((x_average - my_data.my_x)));
+		} else{
+			angle_to_cohesion = 0;
+		}
+		//get avearge of alignment and repulsion
 		theta_average = theta_average / (my_data.neighbor_index + 1);
 		angie = angie / (my_data.neighbor_index + 1);
 
+		/*Now we want to align our boid with the average theta, move our boid towards the average x,y and reppel our boid away from angie*/
+		printf("angle to light: %f\nrepulsion angle: %f\nangle to cohesion: %f\naverage heading: %f\n", angle_to_light, angie, angle_to_cohesion, theta_average);
+		desired_angle = (angle_to_light + angie + angle_to_cohesion + theta_average)/4;
+		error = desired_angle / 2 * PI;
 
+
+
+
+		printf("desired angle is: %f\n\n", desired_angle);
 
 		curr_t = kilo_ticks;
-		neighb_bias_angle = theta + PI;
-		neighb_bias_dist = distance;
 
-		// if (neighb_bias_dist < 2 * my_rad) {
-		// 	mag_repulse = k * (2*my_rad - neighb_bias_dist);
-		// 	// printf("interference naysh! %f\n", mag_repulse);
-		// } else {
-		// 	mag_repulse = 0;
-		// }
-
-		mag_repulse = 0;
-
-		if (mag_repulse){
-			angie = ((2 - k) * angle_to_light + k *neighb_bias_angle)/2; //Can be improved
-			error = angie/ (2 * PI);
-		} else{
-			// printf("doing this\n");
-			error = angle_to_light/ (2 * PI);	
-		}
-		
 		// if (message_flag){
 		// 	message_flag = 0;
 		// 	distance = 255;
@@ -143,7 +142,7 @@ class mykilobot : public kilobot
 			// t2 = (int)(50 * abs(error));
 		}
 		else if ((curr_t >= prev_t + t1) && (curr_t <= prev_t + t1 + t3) && (angle_flag)){
-			if (abs(error) > 0.05){
+			if (abs(error) > 0.50){
 				// t2 = 50;
 				// set_color(RGB(1,1,1));
 				angle_flag = 0;
