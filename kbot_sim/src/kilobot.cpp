@@ -42,12 +42,12 @@ class mykilobot : public kilobot
 
 
 	int doOnce = 0;
-	int my_rad;
+	int my_rad = 16;
 	float neighb_bias_angle;
 	float neighb_bias_dist;
 	float k = 1;
-	float mag_repulse;
-	float angie;
+	double mag_repulse;
+	double angie;
 	int message_flag;
 
 	int state = 0;
@@ -57,6 +57,7 @@ class mykilobot : public kilobot
 	//main loop
 	void loop()
 	{	
+		printf("%d",my_rad);
 		if (!doOnce){
 			doOnce = 1;
 			setup_p2();
@@ -74,6 +75,34 @@ class mykilobot : public kilobot
 		out_message.data[4] = my_data.my_y & 0x00ff;
 
 		
+		/*perform calculations neccesarry for cohesion, alignment, repulsion, and migration*/
+		//cohession, alignment, repulsion calculation
+		double x_average = my_data.my_x;
+		double y_average = my_data.my_y;
+		double theta_average = my_data.my_heading;
+		angie = 0;
+		for (int i = 0; i < my_data.neighbor_index; i++){
+			//only consider boids in range
+			if (my_data.neighbor_list[i].distance < NEIGHBOR_RANGE){
+				//calculate COM for cohesion
+				x_average += my_data.neighbor_list[i].x;
+				y_average += my_data.neighbor_list[i].y;
+
+				//calculate average heading for alignemnt
+				theta_average += my_data.neighbor_list[i].theta;
+				
+				//calculate average repulsion offset for repulsion
+				mag_repulse = k * (NEIGHBOR_RANGE - my_data.neighbor_list[i].distance)/NEIGHBOR_RANGE; //get fractional value for magnitude of repulsion based on distance
+				angie += k * PI * mag_repulse;
+
+			}
+		}
+		x_average = x_average / (my_data.neighbor_index + 1);
+		y_average = y_average / (my_data.neighbor_index + 1);
+		theta_average = theta_average / (my_data.neighbor_index + 1);
+		angie = angie / (my_data.neighbor_index + 1);
+
+
 
 		curr_t = kilo_ticks;
 		neighb_bias_angle = theta + PI;
