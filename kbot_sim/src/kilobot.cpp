@@ -3,20 +3,28 @@
 
 class mykilobot : public kilobot
 {
-
+	unsigned char NEIGHBOR_RANGE = 200;
 	unsigned char distance =255;
+	short degrees;
 	message_t out_message;
+
+	struct neighbor_info{
+		uint8_t id;
+		uint16_t x;
+		uint16_t y;
+		double distance;
+		double theta;
+	};
 
 	struct mydata
 	{
-		unsigned short my_x;
-		unsigned short my_y;
-		unsigned char my_id;
-		unsigned char neighbor_list[20][1][3]; //id, dist, angle
-		float my_heading;
-		unsigned char neighbor_index;
+		uint8_t my_id;
+		uint8_t neighbor_index;
+		uint16_t my_x;
+		uint16_t my_y;
+		double my_heading;
+		neighbor_info neighbor_list[20]; //id, dist, angle
 	};
-
 
 	int rxed=0;
 	float theta;
@@ -53,6 +61,19 @@ class mykilobot : public kilobot
 			doOnce = 1;
 			setup_p2();
 		}
+
+		//update your own position and heading
+		my_data.my_x = (uint16_t) pos[0];
+		my_data.my_y = (uint16_t) pos[1];
+		my_data.my_heading = angle_to_light;
+
+		//package out message with your position and heading
+		out_message.data[1] = (my_data.my_x & 0xff00) >> 8;
+		out_message.data[2] = my_data.my_x & 0x00ff;
+		out_message.data[3] = (my_data.my_y & 0xff00) >> 8;
+		out_message.data[4] = my_data.my_y & 0x00ff;
+
+		
 
 		curr_t = kilo_ticks;
 		neighb_bias_angle = theta + PI;
@@ -177,7 +198,7 @@ class mykilobot : public kilobot
 		unsigned char sender_index;
 		bool fam_face_flag = 0;
 		for (int i = 0; i < my_data.neighbor_index; i++){
-			if (my_data.neighbor_list[i][0][0] == sender_id){
+			if (my_data.neighbor_list[i].id == sender_id){
 				sender_index = i;
 				fam_face_flag = 1;
 				break;
@@ -185,12 +206,16 @@ class mykilobot : public kilobot
 		}
 		if (!fam_face_flag){
 			printf("heard from a new person\n");
-			my_data.neighbor_list[my_data.neighbor_index][0][0] = sender_id;
+			my_data.neighbor_list[my_data.neighbor_index].id = sender_id;
 			sender_index = my_data.neighbor_index;
 			my_data.neighbor_index++;
 		}
 
 		//update their heading and distance in our neighbor list
+		my_data.neighbor_list[sender_index].theta = theta;
+		my_data.neighbor_list[sender_index].distance = distance;
+		my_data.neighbor_list[sender_index].x = (message->data[1] << 8) | message->data[2];
+		my_data.neighbor_list[sender_index].y = (message->data[3] << 8) | message->data[4];
 
 		message_flag = 1;
 	}
