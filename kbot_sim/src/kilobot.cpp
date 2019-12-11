@@ -3,7 +3,7 @@
 
 class mykilobot : public kilobot
 {
-	unsigned short NEIGHBOR_RANGE = 400;
+	unsigned short NEIGHBOR_RANGE = 500;
 	unsigned char distance =255;
 	short degrees;
 	message_t out_message;
@@ -95,41 +95,38 @@ class mykilobot : public kilobot
 				theta_average += my_data.neighbor_list[i].theta;
 				
 				//calculate average repulsion offset for repulsion
-				mag_repulse = k * (NEIGHBOR_RANGE - my_data.neighbor_list[i].distance)/NEIGHBOR_RANGE; //get fractional value for magnitude of repulsion based on distance
+				mag_repulse = k * (NEIGHBOR_RANGE - my_data.neighbor_list[i].distance + 64)/NEIGHBOR_RANGE; //get fractional value for magnitude of repulsion based on distance
 				angie += k * PI * mag_repulse;
 
 			}
 		}
 		//convert our desired cohesion position to an angle
-		x_average = x_average / (my_data.neighbor_index + 1);
-		y_average = y_average / (my_data.neighbor_index + 1);
+		x_average = x_average / (num_neighbors + 1);
+		y_average = y_average / (num_neighbors + 1);
 		if (num_neighbors){
-			angle_to_cohesion = tan((y_average - my_data.my_y)/float((x_average - my_data.my_x)));
+			angle_to_cohesion = atan2((double)(y_average - my_data.my_y),(double) (x_average - my_data.my_x));
 		} else{
 			angle_to_cohesion = 0;
 		}
 		//get avearge of alignment and repulsion
-		theta_average = theta_average / (my_data.neighbor_index + 1);
-		angie = angie / (my_data.neighbor_index + 1);
+		theta_average = theta_average / (num_neighbors + 1);
+		angie = angie / (num_neighbors + 1);
+		// printf("angle to light: %f\nrepulsion angle: %f\nangle to cohesion: %f\naverage heading: %f\n", angle_to_light, angie, angle_to_cohesion, theta_average);
 
-		/*Now we want to align our boid with the average theta, move our boid towards the average x,y and reppel our boid away from angie*/
-		printf("angle to light: %f\nrepulsion angle: %f\nangle to cohesion: %f\naverage heading: %f\n", angle_to_light, angie, angle_to_cohesion, theta_average);
-		desired_angle = (angle_to_light + angie + angle_to_cohesion + theta_average)/4;
-		error = desired_angle / 2 * PI;
+		//calculatr attractiveness to light source
+		dist_error = sqrt(pow((my_data.my_x - 1200),2) + pow((my_data.my_y - 1200),2));
+		mag_repulse = dist_error/1200.0;
+		// printf("mag repulse for migration is: %f\n", mag_repulse);
+		angle_to_light = angle_to_light * mag_repulse;
 
-
-
-
-		printf("desired angle is: %f\n\n", desired_angle);
+		// printf("desired angle is: %f\n\n", desired_angle);
 
 		curr_t = kilo_ticks;
 
-		// if (message_flag){
-		// 	message_flag = 0;
-		// 	distance = 255;
-		// }
+		/*Now we want to align our boid with the average theta, move our boid towards the average x,y and reppel our boid away from angie*/
+		desired_angle = ((2) * angle_to_light + (1.4) * angie + (0.4) * angle_to_cohesion + (0.2) * theta_average)/4;
 		
-		dist_error = sqrt(pow((pos[0] - 1200),2) + pow((pos[1] - 1200),2));
+		error = desired_angle / (2 * PI);
 
 		if ((curr_t >= prev_t + t1) && (curr_t <= prev_t + t1 + t2) && (!angle_flag)) {
 			if (error < 0){
@@ -139,7 +136,7 @@ class mykilobot : public kilobot
 				motorR = 0;
 				motorL = 50;
 			}
-			// t2 = (int)(50 * abs(error));
+			// t2 = (int)(5000 * abs(error));
 		}
 		else if ((curr_t >= prev_t + t1) && (curr_t <= prev_t + t1 + t3) && (angle_flag)){
 			if (abs(error) > 0.50){
@@ -153,24 +150,28 @@ class mykilobot : public kilobot
 		}
 
 		else {
+			motorR = 0;
+			motorL = 0;
+
 			if ((curr_t >= prev_t + t1 + t2)){
 				prev_t = curr_t;
 				
-				t2 = (int)(50 * abs(error));
-				if (abs(error) < 0.05){
-					t2 = 0;
-					// set_color(RGB(1,0,1));
-					angle_flag = 1;
-				}
+				// t2 = (int)(50 * abs(error));
+				// if (abs(error) < 0.05){
+				// 	t2 = 0;
+				// 	// set_color(RGB(1,0,1));
+				// 	//set aligned to desired angle
+				// 	angle_flag = 1;
+				// }
 			}
-			motorR = 0;
 
-			if (angle_flag){
-				t3 = 200 * dist_error;
-				if (dist_error < 50){
-					t3 = 0;
-				}
-			}
+
+			// if (angle_flag){
+			// 	t3 = 200 * dist_error;
+			// 	if (dist_error < 50){
+			// 		t3 = 0;
+			// 	}
+			// }
 		}
 
 		// printf("motorR is %d\n", motorR);
@@ -209,7 +210,7 @@ class mykilobot : public kilobot
 	{
 		static int count = rand();
 		count--;
-		if (!(count % 10))
+		if (!(count % 2))
 		{
 			return &out_message;
 		}
@@ -237,10 +238,12 @@ class mykilobot : public kilobot
 			my_data.neighbor_list[my_data.neighbor_index].id = sender_id;
 			sender_index = my_data.neighbor_index;
 			my_data.neighbor_index++;
+			// printf("telling me theta is: %f\n", theta);
 		}
 
 		//update their heading and distance in our neighbor list
 		my_data.neighbor_list[sender_index].theta = theta;
+
 		my_data.neighbor_list[sender_index].distance = distance;
 		my_data.neighbor_list[sender_index].x = (message->data[1] << 8) | message->data[2];
 		my_data.neighbor_list[sender_index].y = (message->data[3] << 8) | message->data[4];
