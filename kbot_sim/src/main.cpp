@@ -48,8 +48,7 @@ FILE *results;
 char log_buffer[255];
 char log_file_buffer[buffer_size];
 
-int light_center[2]={400,400};
-
+int light_center[2]={1200,1200};
 
 bool log_debug_info = true;
 char log_file_name[255] = "simulation.log";

@@ -156,9 +156,9 @@ public:
 
 	double comm_out_criteria(double x, double y, int sd) //stardard circular transmission area
 	{
-		if (sd>(30*radius)) return 0; // it's more than 10 cm away
+		if (sd>(150*radius)) return 0; // it's more than 10 cm away
 		double d = distance(x,y,pos[0],pos[1]);
-		if (d <  30* radius)
+		if (d <  150 * radius)
 			return d;
 		return 0;
 	}
