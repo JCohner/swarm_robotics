@@ -32,6 +32,7 @@ void robot::robot_controller()
 
 void robot::robot_init(double x, double y, double t)
 {
+	static int myid = 0;
 	//initalize robot variables
 	pos[0] = x;
 	pos[1] = y;
@@ -40,9 +41,11 @@ void robot::robot_init(double x, double y, double t)
 	timer = rand() / 100;
 	incoming_message_flag = 0;
 	tx_request = 0;
-	if (id == 0){
-		id = rand();
-	}
+	// if (id == 0){
+	// 	id = rand();
+	// }
+
+	id = myid++;
 	// printf("assigned id#: %d", id);
 	rand();
 	motor_error = robot::gauss_rand(timer)*motion_error_std;

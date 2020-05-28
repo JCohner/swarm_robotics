@@ -20,13 +20,13 @@ using namespace std;
 
 #define buffer_size 1000000
 #define channels 2 
-//#define delay 10 //delay between time steps, use if program is too fast
+// #define delay 10 //delay between time steps, use if program is too fast
 #define windowWidth 600 //display window
 #define windowHeight 700 //display window
 #define comm_noise_std 5 //standard dev. of sensor noise
 #define PI 3.14159265358979324
 #define twicePi  2 * PI
-#define radius 16 //radius of a robot
+#define radius 32 //radius of a robot
 #define p_control_execute .99 // probability of a controller executing its time step
 #define SKIPFRAMES 0
 #define shuffles 20
@@ -35,13 +35,13 @@ using namespace std;
 double time_sim;  //simulation time
 double zoom, view_x, view_y; //var. for zoom and scroll
 
-int num_robots = 32 * 32; //number of robots running
+int num_robots = 3; //number of robots running
 
 robot** robots;//creates an array of robots
 int* safe_distance;
 int* order;
 
-int delay = 0;
+int delay = 100;
 int draw_delay=1;
 FILE *results;
 
@@ -508,7 +508,6 @@ void setup_positions()
 		//c and r represent (x,y) of robot in hex space
 		int c = i % columns + 1;
 		int r = i / columns + 1;
-
 		
 		if (r%2 == 1){
 			hex_offset = offset;
@@ -516,8 +515,9 @@ void setup_positions()
 			hex_offset = 0;
 		}
 		
-		int x = c * horizontal_separation + hex_offset;
-		int y = r * vertical_separation;
+		int x = 1000 + k * 49;
+		int y = 1000 + k * 49;
+
 		robots[k] = new mykilobot();
 		// sprintf(msg, "c is: %d & r is %d\n", c, r);
 		// printf("%s",msg);

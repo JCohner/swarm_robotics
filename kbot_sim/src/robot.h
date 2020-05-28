@@ -8,7 +8,7 @@
 #define right 2
 #define left 3
 #define sensor_lightsource 1
-#define radius 16
+#define radius 32
 #define X 0
 #define Y 1
 #define T 2
